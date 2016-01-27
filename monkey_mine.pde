@@ -1,6 +1,8 @@
 
 
 import javax.vecmath.Vector3f;
+import com.bulletphysics.dynamics.constraintsolver.Generic6DofConstraint;
+import com.bulletphysics.linearmath.Transform;
 /*import com.bulletphysics.collision.dispatch.CollisionFlags;
 import com.bulletphysics.collision.dispatch.GhostObject;
 import com.bulletphysics.collision.dispatch.GhostPairCallback;*/
@@ -17,11 +19,38 @@ BBox box2;
 BJointHinge hinge;
 BJointHinge hinge2;
 
+
+int[][] map = {
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1}
+};
+
 public void setup() {
   size(640,480,P3D);
   frameRate(60);
   
-  cam = new PeasyCam(this, 600);
+  cam = new PeasyCam(this, 0,-400,0, 1000);
   
   Vector3f min = new Vector3f(-1200, -2500, -1200);
   Vector3f max = new Vector3f(1200, 2500, 1200);
@@ -34,7 +63,7 @@ public void setup() {
   Vector3f pos2 = new Vector3f(0,-60,0);
   Vector3f pos4 = new Vector3f(0, 0,0);
   
-  box1 = new BBox(this,100,500, 10,500);
+  box1 = new BBox(this,100,1000, 10,1000);
   box2 = new BBox(this,  1, 50, 50, 50);
   
   BObject b1 = new BObject(this,100,box1,pos1,true);
@@ -59,9 +88,6 @@ public void setup() {
   hinge = new BJointHinge(b2,b1,pivA,pivB,axisInA,axisInB);
   physics.addJoint(hinge);
   
-  
-  
-  
   Vector3f dist2 = b3.rigidBody.getCenterOfMassPosition(new Vector3f());
   Vector3f t2     = b2.rigidBody.getCenterOfMassPosition(new Vector3f());
   dist2.sub(t2);
@@ -80,8 +106,8 @@ public void setup() {
 
   
   Vector3f pos3 = new Vector3f(0,0,0);
-  BSphere sphere = new BSphere(this,10,20,pos3,true);
-  sphere.setPosition(new Vector3f(200,-500,200));
+  BSphere sphere = new BSphere(this,1,20,pos3,true);
+  sphere.setPosition(new Vector3f(50,-500,50));
   
   //BObject s = new BObject(this,100,sphere,pos3,true);
   physics.addBody(b1);
@@ -93,28 +119,72 @@ public void setup() {
   hinge.setLimit(-.5f, .5f);
   hinge2.setLimit(-.5f, .5f);
   //s.setPosition(pos3);
+  
+  for (int j=0;j<20;j++) {
+    for (int i=0;i<20;i++) {
+      if (map[j][i] == 0)continue;
+      Vector3f pos5 = new Vector3f(50*j-475,-30f,50*i-475);
+      BObject obstracle = new BObject(this,1,box2,pos5,true);
+      physics.addBody(obstracle);
+      //obstracle.setPosition(new Vector3f(-0,-30,0));
+      
+      Transform frameInA = new Transform();
+      Transform frameInB = new Transform();
+      frameInA.setIdentity();
+      frameInB.setIdentity();
+      
+      frameInA.origin.x = pos5.x;
+      frameInA.origin.z = pos5.z;
+      frameInA.origin.y = -30f;
+      
+      
+      Generic6DofConstraint Fixed = new Generic6DofConstraint(b1.rigidBody,obstracle.rigidBody,frameInA,frameInB,true);
+      Vector3f limit = new Vector3f(0f,0f,0f);
+      Fixed.setAngularLowerLimit(limit);
+      Fixed.setAngularUpperLimit(limit);
+      Fixed.setLinearLowerLimit(new Vector3f(0f,0f,0f));
+      Fixed.setLinearUpperLimit(new Vector3f(0f,0f,0f));
+      physics.addJoint(Fixed);
+    }
+  }
 }  
+
+float angle_x = .0f;
+float angle_y = .0f;
 
 public void draw() {
   
   background(0);
   lights();
   
-  if (hinge.getHingeAngle() < 0) {
-    
-    hinge.enableAngularMotor(true, -hinge.getHingeAngle(), 20000f);
-  }
-  else if (hinge.getHingeAngle() > 0) {
-    hinge.enableAngularMotor(true, -hinge.getHingeAngle(), 20000f);
-  }
+  float angle1 = hinge .getHingeAngle() - angle_x;
+  float angle2 = hinge2.getHingeAngle() - angle_y;
   
-  if (hinge2.getHingeAngle() < 0) {
-    hinge2.enableAngularMotor(true, -hinge2.getHingeAngle(), 20000f);
-  }
-  else if (hinge2.getHingeAngle() > 0){
-    hinge2.enableAngularMotor(true, -hinge2.getHingeAngle(), 20000f);
-  }
+  hinge.enableAngularMotor(true,  -angle1*2.f, 100000f);
+  hinge2.enableAngularMotor(true, -angle2*2.f, 100000f);
   
   physics.update();
   physics.display();
+}
+
+public void keyPressed() {
+  if (key == CODED) {
+    if (keyCode == UP) {
+      angle_y -= .05f;
+    }
+    else if (keyCode == DOWN) {
+      angle_y += .05f;
+    }
+    else if (keyCode == RIGHT) {
+      angle_x -= .05f;
+    }
+    else if (keyCode == LEFT) {
+      angle_x += .05f;
+    }
+  }
+  
+  if(angle_x > .5f) angle_x = .45f;
+  if(angle_x < -.5f) angle_x = -.45f;
+  if(angle_y > .5f) angle_y = .45f;
+  if(angle_y < -.5f) angle_y = -.45f;
 }
