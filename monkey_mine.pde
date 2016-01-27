@@ -1,9 +1,9 @@
 
 
 import javax.vecmath.Vector3f;
-import com.bulletphysics.collision.dispatch.CollisionFlags;
+/*import com.bulletphysics.collision.dispatch.CollisionFlags;
 import com.bulletphysics.collision.dispatch.GhostObject;
-import com.bulletphysics.collision.dispatch.GhostPairCallback;
+import com.bulletphysics.collision.dispatch.GhostPairCallback;*/
 
 import peasy.*;
 import bRigid.*;
@@ -11,11 +11,11 @@ import bRigid.*;
 PeasyCam cam;
 
 BPhysics physics;
-BBox box;
-BBox ground;
-GhostObject ghostObject;
-BObject r;
-BObject g;
+
+BBox box1;
+BBox box2;
+BJointHinge hinge;
+BJointHinge hinge2;
 
 public void setup() {
   size(640,480,P3D);
@@ -30,51 +30,91 @@ public void setup() {
   
   physics.world.setGravity(new Vector3f(0,500, 0));
   
-  box = new BBox(this, 0, 50, 50, 50);
+  Vector3f pos1 = new Vector3f(0,-100,0);
+  Vector3f pos2 = new Vector3f(0,-60,0);
+  Vector3f pos4 = new Vector3f(0, 0,0);
   
-  Vector3f pos = new Vector3f(0,-150,0);
-  r = new BObject(this, 1, box, pos, true);
+  box1 = new BBox(this,100,500, 10,500);
+  box2 = new BBox(this,  1, 50, 50, 50);
   
-  physics.addBody(r);
+  BObject b1 = new BObject(this,100,box1,pos1,true);
+  BObject b2 = new BObject(this,100,box2,pos2,true);
+  BObject b3 = new BObject(this,  0,box2,pos4,true);
   
-  ground = new BBox(this, 0,500,10,500);
-  g = new BObject(this,1,ground,pos,true);
-  physics.addBody(g);
+  //b1.setPosition(pos1);
+  //b2.setPosition(pos2);
   
-  //BJointHinge joint = new BJointHinge(g,r,new Vector3f(60,0,0),new Vector3f(60,0,0),new Vector3f(0,1,0),new Vector3f(0,1,0));
-  //BJointNail joint2= new BJointNail(g,r);
-  //BJoint6DofC joint3= new BJoint6DofC(g,r);
-  //physics.addJoint(joint3);
-  //physics.addJoint(joint);
-  //physics.addJoint(joint2);
-  /*
-  ground = new BBox(this, 1, new Vector3f(0,200,0), new Vector3f(200, 10, 200), true);
+  Vector3f dist = b2.rigidBody.getCenterOfMassPosition(new Vector3f());
+  Vector3f t    = b1.rigidBody.getCenterOfMassPosition(new Vector3f());
+  dist.sub(t);
+  Vector3f pivA = (Vector3f) dist.clone();
+  pivA.scale(-.5f);
+  Vector3f pivB = (Vector3f) dist.clone();
+  pivB.scale(.5f);
   
-  ghostObject = new GhostObject();
-  ghostObject.setCollisionShape(ground.collisionShape);
-  ghostObject.setCollisionFlags(new CollisionFlags().NO_CONTACT_RESPONSE);
-  ghostObject.setWorldTransform(ground.transform);
-  physics.world.addCollisionObject(ghostObject);*/
+  Vector3f axisInA = new Vector3f(0, 0, 1);
+  axisInA.normalize();
+  Vector3f axisInB = (Vector3f) axisInA.clone();
   
-}
+  hinge = new BJointHinge(b2,b1,pivA,pivB,axisInA,axisInB);
+  physics.addJoint(hinge);
+  
+  
+  
+  
+  Vector3f dist2 = b3.rigidBody.getCenterOfMassPosition(new Vector3f());
+  Vector3f t2     = b2.rigidBody.getCenterOfMassPosition(new Vector3f());
+  dist2.sub(t2);
+  Vector3f pivA2 = (Vector3f) dist2.clone();
+  pivA2.scale(-.5f);
+  Vector3f pivB2 = (Vector3f) dist2.clone();
+  pivB2.scale(.5f);
+  
+  Vector3f axisInA2 = new Vector3f(1, 0, 0);
+  axisInA.normalize();
+  Vector3f axisInB2 = (Vector3f) axisInA2.clone();
+  
+  hinge2 = new BJointHinge(b3,b2,pivA2,pivB2,axisInA2,axisInB2);
+  physics.addJoint(hinge2);
+  
 
-int i=0;
+  
+  Vector3f pos3 = new Vector3f(0,0,0);
+  BSphere sphere = new BSphere(this,10,20,pos3,true);
+  sphere.setPosition(new Vector3f(200,-500,200));
+  
+  //BObject s = new BObject(this,100,sphere,pos3,true);
+  physics.addBody(b1);
+  physics.addBody(b2);
+  physics.addBody(b3);
+  physics.addBody(sphere);
+
+  
+  hinge.setLimit(-.5f, .5f);
+  hinge2.setLimit(-.5f, .5f);
+  //s.setPosition(pos3);
+}  
+
 public void draw() {
   
-  background(255);
+  background(0);
   lights();
   
+  if (hinge.getHingeAngle() < 0) {
+    
+    hinge.enableAngularMotor(true, -hinge.getHingeAngle(), 20000f);
+  }
+  else if (hinge.getHingeAngle() > 0) {
+    hinge.enableAngularMotor(true, -hinge.getHingeAngle(), 20000f);
+  }
+  
+  if (hinge2.getHingeAngle() < 0) {
+    hinge2.enableAngularMotor(true, -hinge2.getHingeAngle(), 20000f);
+  }
+  else if (hinge2.getHingeAngle() > 0){
+    hinge2.enableAngularMotor(true, -hinge2.getHingeAngle(), 20000f);
+  }
   
   physics.update();
-  
-  Vector3f vec = new Vector3f(50*cos(0.01f*i),50*sin(0.01f*i),0);
-  Vector3f vec2= new Vector3f(vec.y,-vec.x,0);
-  vec2.normalize();
-  r.setRotation(new Vector3f(0,0,1),0.01f*i);
-  g.setRotation(new Vector3f(0,0,1),0.01f*i);
-  r.setPosition(new Vector3f(50*cos(0.01f*i)+vec2.x*25,-150+50*sin(0.01f*i++)+vec2.y*25,0));
-  g.setPosition(new Vector3f(0,-150,0));
-  
-  //ground.display();
   physics.display();
 }
