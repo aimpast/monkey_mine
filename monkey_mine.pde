@@ -2,6 +2,7 @@
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 import javax.vecmath.Matrix3f;
+import javax.vecmath.Matrix4f;
 import com.bulletphysics.dynamics.constraintsolver.Generic6DofConstraint;
 import com.bulletphysics.collision.dispatch.CollisionFlags;
 import com.bulletphysics.collision.dispatch.CollisionObject;
@@ -10,10 +11,8 @@ import com.bulletphysics.linearmath.QuaternionUtil;
 import com.bulletphysics.linearmath.Transform;
 import com.bulletphysics.dynamics.RigidBody; 
 
-/*
 import com.bulletphysics.collision.dispatch.GhostObject;
 import com.bulletphysics.collision.dispatch.GhostPairCallback;
-*/
 
 import peasy.*;
 import bRigid.*;
@@ -28,6 +27,8 @@ BBox box2;
 BJointHinge hinge;
 BJointHinge hinge2;
 BObject b1;
+
+BObject test;
 
 ArrayList<BObject> obj;
 
@@ -81,6 +82,8 @@ public void setup() {
   
   b1 = new BObject(this,100,box1,pos1,true);
   
+  
+  //Kinematic Object Settings
   Transform transform = new Transform();
   b1.rigidBody.getMotionState().getWorldTransform(transform);
   b1.rigidBody.setCollisionFlags(b1.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
@@ -124,7 +127,19 @@ public void setup() {
       physics.addJoint(Fixed);
       
     }
+    
+    
+    
   }
+  
+  Vector3f position_test = new Vector3f(30,-10,0);
+    test = new BObject(this,1,box2,position_test,true);
+    
+    Transform transform2 = new Transform();
+    test.rigidBody.getMotionState().getWorldTransform(transform2);
+    test.rigidBody.setCollisionFlags(test.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+    test.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+    physics.addBody(test);
 }  
 
 float angle_x = .0f;
@@ -136,6 +151,8 @@ public void draw() {
   lights();
   
   getkey();
+  
+  updateGhost();
 
   physics.update();
   physics.display();
@@ -171,6 +188,16 @@ public void getkey() {
   if(angle_y > .5f) angle_y = .45f;
   if(angle_y < -.5f) angle_y = -.45f;
   
+  
+  //Rotation Matrix
+  /*Matrix4f bius = new Matrix4f(
+    1,0,0,0,
+    0,1,0,-200,
+    0,0,1,0,
+    0,0,0,1
+  );*/
+  
+  //Rotation Matrix  
   Matrix3f mat1 = new Matrix3f(
     1,0,0,
     0,cos(angle_y),sin(angle_y),
@@ -184,9 +211,60 @@ public void getkey() {
     );
     
   mat1.mul(mat2);
-  Transform t = new Transform(mat1);
+  
+  //Quat4f qout = new Quat4f();
+  
+  Transform t= new Transform(mat1);
+  //Transform t = new Transform(bius);
+  //t.setRotation(t2.getRotation(qout));
   b1.rigidBody.getMotionState().setWorldTransform(t);
   
   }
   
+}
+
+public void updateGhost() {
+  
+  float distance=100.f;
+  float bius = 30.f;
+  
+  Vector3f pos_1 = new Vector3f(distance*cos(angle_x),distance*sin(angle_y),0);
+  Vector3f pos_2 = new Vector3f(0,-distance*sin(angle_x),distance*cos(angle_y));
+  
+  
+  Vector3f up1 = new Vector3f(pos_1.y,-pos_1.x,0);
+  Vector3f up2 = new Vector3f(0,-pos_2.z,+pos_2.y);
+  
+  
+  //System.out.println(up1.x+","+up1.y+","+up1.z);
+  //System.out.println(up2.x+","+up2.y+","+up2.z);
+
+  if(up1.lengthSquared() > 0)
+    up1.normalize();
+  if(up2.lengthSquared() > 0)
+    up2.normalize();
+  
+ System.out.println(up1.x+","+up1.y+","+up1.z);
+  System.out.println(up2.x+","+up2.y+","+up2.z);
+
+  //Vector3f up = new Vector3f(0,0,0);
+  
+  Matrix4f mat1 = new Matrix4f(
+    1,0,0,                      pos_1.x+pos_2.x+bius*(up1.x+up2.x),
+    0,cos(angle_y),sin(angle_y),pos_1.y+pos_2.y+bius*(up1.y+up2.y),
+    0,-sin(angle_y),cos(angle_y),pos_1.z+pos_2.z+bius*(up1.z+up2.z),
+    0,0,0,1
+  );
+  
+  Matrix4f mat2 = new Matrix4f(
+    cos(angle_x),sin(angle_x),0,0,
+    -sin(angle_x),cos(angle_x),0,0,
+    0,0,1,0,
+    0,0,0,1
+  );
+  
+  mat1.mul(mat2);
+
+  Transform t= new Transform(mat1);
+  test.rigidBody.getMotionState().setWorldTransform(t);
 }
