@@ -1,18 +1,17 @@
 
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4f;
 import javax.vecmath.Matrix3f;
 import javax.vecmath.Matrix4f;
 import com.bulletphysics.dynamics.constraintsolver.Generic6DofConstraint;
+import com.bulletphysics.collision.dispatch.GhostPairCallback;
 import com.bulletphysics.collision.dispatch.CollisionFlags;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.dispatch.GhostObject;
 import com.bulletphysics.linearmath.QuaternionUtil; 
 import com.bulletphysics.linearmath.Transform;
 import com.bulletphysics.dynamics.RigidBody; 
-
-import com.bulletphysics.collision.dispatch.GhostObject;
-import com.bulletphysics.collision.dispatch.GhostPairCallback;
 
 import peasy.*;
 import bRigid.*;
@@ -28,9 +27,18 @@ BJointHinge hinge;
 BJointHinge hinge2;
 BObject b1;
 
-BObject test;
+BSphere sphere;
 
-ArrayList<BObject> obj;
+BObject test;
+GhostObject ghostObject;
+GhostPairCallback ghostPairCallback;
+
+ArrayList<Mine> mines;
+
+//true : Mines are visible
+//false: Mines are unvisible
+public static final boolean visiblity = true;
+
 
 int[][] map = {
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
@@ -60,7 +68,7 @@ int[][] map = {
 
 public void setup() {
   
-  obj = new ArrayList<BObject>();
+  mines = new ArrayList<Mine>();
   size(640,480,P3D);
   frameRate(60);
   
@@ -90,7 +98,7 @@ public void setup() {
   b1.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
   
   Vector3f pos3 = new Vector3f(0,0,0);
-  BSphere sphere = new BSphere(this,1,20,pos3,true);
+  sphere = new BSphere(this,1,20,pos3,true);
   sphere.setPosition(new Vector3f(50,-500,50));
   
   physics.addBody(b1);
@@ -133,13 +141,27 @@ public void setup() {
   }
   
   Vector3f position_test = new Vector3f(30,-10,0);
-    test = new BObject(this,1,box2,position_test,true);
-    
-    Transform transform2 = new Transform();
-    test.rigidBody.getMotionState().getWorldTransform(transform2);
-    test.rigidBody.setCollisionFlags(test.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
-    test.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
-    physics.addBody(test);
+  test = new BObject(this,1,box2,position_test,true);
+  
+  Transform transform2 = new Transform();
+  test.rigidBody.getMotionState().getWorldTransform(transform2);
+  test.rigidBody.setCollisionFlags(test.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+  test.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+  //physics.addBody(test);
+  
+  //ghostPairCallback = new GhostPairCallback();
+  //physics.world.getPairCache().setInternalGhostPairCallback(ghostPairCallback);
+  
+  ghostObject = new GhostObject();
+  ghostObject.setCollisionShape(test.collisionShape);
+  ghostObject.setCollisionFlags(new CollisionFlags().NO_CONTACT_RESPONSE);
+  ghostObject.setWorldTransform(test.transform);
+  physics.world.addCollisionObject(ghostObject);
+  
+  Mine m1 = new Mine(400,100,test,ghostObject);
+  Mine m2 = new Mine(-300,200,test,ghostObject);
+  mines.add(m1);
+  mines.add(m2);
 }  
 
 float angle_x = .0f;
@@ -225,46 +247,94 @@ public void getkey() {
 
 public void updateGhost() {
   
-  float distance=100.f;
-  float bius = 30.f;
+  for (Mine mine: mines) {
+    
+    float bius = 20.f;
+    
+    Vector3f pos_1 = new Vector3f(cos(angle_x),sin(angle_y),0);
+    Vector3f pos_2 = new Vector3f(0,-sin(angle_x),cos(angle_y));
+    
+    
+    Vector3f up1 = new Vector3f(pos_1.y,-pos_1.x,0);
+    Vector3f up2 = new Vector3f(0,-pos_2.z,+pos_2.y);
+    
+    pos_1.x *= mine.x;
+    pos_1.y *= mine.y;
+    
+    pos_2.y *= mine.x;
+    pos_2.z *= mine.y;
+    
+    //System.out.println(up1.x+","+up1.y+","+up1.z);
+    //System.out.println(up2.x+","+up2.y+","+up2.z);
   
-  Vector3f pos_1 = new Vector3f(distance*cos(angle_x),distance*sin(angle_y),0);
-  Vector3f pos_2 = new Vector3f(0,-distance*sin(angle_x),distance*cos(angle_y));
+    if(up1.lengthSquared() > 0)
+      up1.normalize();
+    if(up2.lengthSquared() > 0)
+      up2.normalize();
+    
+   //System.out.println(up1.x+","+up1.y+","+up1.z);
+   //System.out.println(up2.x+","+up2.y+","+up2.z);
   
+    //Vector3f up = new Vector3f(0,0,0);
+    
+    Matrix4f mat1 = new Matrix4f(
+      1,0,0,                      pos_1.x+pos_2.x+bius*(up1.x+up2.x),
+      0,cos(angle_y),sin(angle_y),pos_1.y+pos_2.y+bius*(up1.y+up2.y),
+      0,-sin(angle_y),cos(angle_y),pos_1.z+pos_2.z+bius*(up1.z+up2.z),
+      0,0,0,1
+    );
+    
+    Matrix4f mat2 = new Matrix4f(
+      cos(angle_x),sin(angle_x),0,0,
+      -sin(angle_x),cos(angle_x),0,0,
+      0,0,1,0,
+      0,0,0,1
+    );
+    
+    mat1.mul(mat2);
   
-  Vector3f up1 = new Vector3f(pos_1.y,-pos_1.x,0);
-  Vector3f up2 = new Vector3f(0,-pos_2.z,+pos_2.y);
+    Transform t= new Transform(mat1);
+    test.rigidBody.getMotionState().setWorldTransform(t);
+    ghostObject.setWorldTransform(t);
+    
+    
+    if (visiblity) {
+      test.display();
+    }
+    
+    Matrix4f meMat = new Matrix4f();
+    Matrix4f mineMat = new Matrix4f();
+    Transform meTransform = new Transform();
+    t.getMatrix(meMat);
+    sphere.rigidBody.getWorldTransform(meTransform).getMatrix(mineMat);
+    
+    Vector3f nearest = new Vector3f();
+    
+    nearest.x = mineMat.m03-meMat.m03;
+    nearest.y = mineMat.m13-meMat.m13;
+    nearest.z = mineMat.m23-meMat.m23;
+    
+    System.out.println(nearest.lengthSquared());
+    
+    if (nearest.lengthSquared()< 1500) {
+      
+      Matrix4f vec = new Matrix4f(
+        1,0,0,                      0,
+        0,cos(angle_y),sin(angle_y),-1,
+        0,-sin(angle_y),cos(angle_y),0,
+        0,0,0,1
+      );
+        
+      vec.mul(mat2);
+      Vector3f vec2 = new Vector3f(vec.m03,vec.m13,vec.m23);
+      vec2.normalize();
+      
+      vec2.x *= 10000;
+      vec2.y *= 10000;
+      vec2.z *= 10000;
+      
+      sphere.rigidBody.applyForce(vec2,sphere.getPosition());
+    }
+  }
   
-  
-  //System.out.println(up1.x+","+up1.y+","+up1.z);
-  //System.out.println(up2.x+","+up2.y+","+up2.z);
-
-  if(up1.lengthSquared() > 0)
-    up1.normalize();
-  if(up2.lengthSquared() > 0)
-    up2.normalize();
-  
- System.out.println(up1.x+","+up1.y+","+up1.z);
-  System.out.println(up2.x+","+up2.y+","+up2.z);
-
-  //Vector3f up = new Vector3f(0,0,0);
-  
-  Matrix4f mat1 = new Matrix4f(
-    1,0,0,                      pos_1.x+pos_2.x+bius*(up1.x+up2.x),
-    0,cos(angle_y),sin(angle_y),pos_1.y+pos_2.y+bius*(up1.y+up2.y),
-    0,-sin(angle_y),cos(angle_y),pos_1.z+pos_2.z+bius*(up1.z+up2.z),
-    0,0,0,1
-  );
-  
-  Matrix4f mat2 = new Matrix4f(
-    cos(angle_x),sin(angle_x),0,0,
-    -sin(angle_x),cos(angle_x),0,0,
-    0,0,1,0,
-    0,0,0,1
-  );
-  
-  mat1.mul(mat2);
-
-  Transform t= new Transform(mat1);
-  test.rigidBody.getMotionState().setWorldTransform(t);
 }
