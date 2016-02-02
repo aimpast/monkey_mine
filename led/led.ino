@@ -28,8 +28,12 @@ void setLed(int distanceBlue, int distanceYerrow, int distanceRed) {
 }
 
 void serialRead() {
-  while(Serial.read() == 255);
+  while(!((Serial.available() > 3) && Serial.read() == 'a')) {};
   setLed(Serial.read(), Serial.read(), Serial.read());
+  Serial.print("----");
+  Serial.print(distance[ledBlue]);
+  Serial.print(distance[ledYerrow]);
+  Serial.print(distance[ledRed]);
 }
 
 bool _lightPattern(int distance, int i, int pattern) {
