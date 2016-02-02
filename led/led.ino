@@ -1,3 +1,5 @@
+const int serialPort = 9600;
+
 const int ledBlue = 0;
 const int ledYerrow = 1;
 const int ledRed = 2;
@@ -25,6 +27,11 @@ void setLed(int distanceBlue, int distanceYerrow, int distanceRed) {
   distance[ledRed] = distanceRed;
 }
 
+void serialRead() {
+  while(Serial.read() == 255);
+  setLed(Serial.read(), Serial.read(), Serial.read());
+}
+
 bool _lightPattern(int distance, int i, int pattern) {
   switch(pattern) {
   case 1:
@@ -48,6 +55,8 @@ void lightLed(int led, int i, int pattern) {
 }
 
 void setup() {
+  Serial.begin(serialPort);
+  
   pinMode(ledBlue, OUTPUT);
   pinMode(ledYerrow, OUTPUT);
   pinMode(ledRed, OUTPUT);
@@ -58,6 +67,8 @@ void setup() {
 }
 
 void loop() {
+  serialRead;
+  
   static int i = 0;
   i++;
   if(i > maxDistance) i = maxDistance;
