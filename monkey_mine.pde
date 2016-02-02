@@ -39,7 +39,6 @@ ArrayList<Mine> mines;
 //false: Mines are unvisible
 public static final boolean visiblity = true;
 
-
 int[][] map = {
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
@@ -75,6 +74,8 @@ int x[];
 int y[];
 int z[];
 int count = 0;
+
+boolean serial_able = true;
 
 boolean flag = false;
 
@@ -183,8 +184,12 @@ public void setup() {
   y = new int[50];
   z = new int[50];
   
-  serial = new Serial(this, portName, 9600);
-  println(portName);
+  if(portName.startsWith("/dev/cu.usbmodem")){
+    serial = new Serial(this, portName, 9600);
+    println(portName);
+  }else{
+    serial_able = false;
+  }
   
 }  
 
@@ -194,8 +199,13 @@ public void draw() {
   background(0);
   lights();
   
-  //getkey();
-  getangle();
+  
+  if(serial_able){
+    getangle();
+  }
+  else{
+    getkey();
+  }
   
   updateGhost();
 
@@ -203,7 +213,7 @@ public void draw() {
   physics.display();
 }
 
-/*
+
 public void getkey() {
   if(keyPressed) {
   if (key == CODED) {
@@ -243,7 +253,7 @@ public void getkey() {
     0,0,0,1
   );*/
   
-  /*
+  
   //Rotation Matrix  
   Matrix3f mat1 = new Matrix3f(
     1,0,0,
@@ -269,7 +279,6 @@ public void getkey() {
   }
   
 }
-*/
 
 public void getangle(){
   int a,b,c;
