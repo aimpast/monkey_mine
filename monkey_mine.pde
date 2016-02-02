@@ -100,7 +100,7 @@ public void setup() {
   box1 = new BBox(this,100,1000, 10,1000);
   box2 = new BBox(this,  1, 50, 50, 50);
   
-  b1 = new BObject(this,100,box1,pos1,true);
+  b1 = new BObject(this,100000,box1,pos1,true);
   
   
   //Kinematic Object Settings
@@ -110,8 +110,9 @@ public void setup() {
   b1.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
   
   Vector3f pos3 = new Vector3f(0,0,0);
-  sphere = new BSphere(this,1,20,pos3,true);
+  sphere = new BSphere(this,100,20,pos3,true);
   sphere.setPosition(new Vector3f(0,-500,0));
+  sphere.rigidBody.setFriction(1.0);
   
   physics.addBody(b1);
   physics.addBody(sphere);
@@ -122,7 +123,7 @@ public void setup() {
       
       if (map[j][i] == 1) {
         Vector3f pos5 = new Vector3f(50*j-475,-30f,50*i-475);
-        BObject obstracle = new BObject(this,1,box2,pos5,true);
+        BObject obstracle = new BObject(this,100,box2,pos5,true);
         physics.addBody(obstracle);
         
         Transform frameInA = new Transform();
@@ -410,7 +411,7 @@ public void updateGhost() {
     
     //System.out.println(nearest.lengthSquared());
     
-    if (nearest.lengthSquared()< 1500) {
+    if (nearest.lengthSquared()< 500) {
       
       Matrix4f vec = new Matrix4f(
         1,0,0,                      0,
@@ -423,9 +424,9 @@ public void updateGhost() {
       Vector3f vec2 = new Vector3f(vec.m03,vec.m13,vec.m23);
       vec2.normalize();
       
-      vec2.x *= 10000;
-      vec2.y *= 10000;
-      vec2.z *= 10000;
+      vec2.x *= 10000000;
+      vec2.y *= 10000000;
+      vec2.z *= 10000000;
       
       sphere.rigidBody.applyForce(vec2,sphere.getPosition());
     }
