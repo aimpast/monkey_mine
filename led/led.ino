@@ -1,3 +1,4 @@
+const char serialStart = 'z';
 const int serialPort = 9600;
 
 const int ledBlue = 0;
@@ -28,7 +29,7 @@ void setLed(int distanceBlue, int distanceYerrow, int distanceRed) {
 }
 
 void serialRead() {
-  while(!((Serial.available() > 3) && Serial.read() == 'a')) {};
+  while(!((Serial.available() > 3) && Serial.read() == serialStart)) {};
   setLed(Serial.read(), Serial.read(), Serial.read());
   Serial.print("----");
   Serial.print(distance[ledBlue]);
