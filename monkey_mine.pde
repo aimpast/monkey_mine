@@ -110,7 +110,7 @@ public void setup() {
   b1.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
   
   Vector3f pos3 = new Vector3f(0,0,0);
-  sphere = new BSphere(this,100,20,pos3,true);
+  sphere = new BSphere(this,125,20,pos3,true);
   sphere.setPosition(new Vector3f(0,-500,0));
   sphere.rigidBody.setFriction(1.0);
   
@@ -296,8 +296,8 @@ public void getangle(){
             a /= 50;
             b /= 50;
             c /= 50;
-            angle_x = (float)(atan2(a-520, c-580) / PI * 180.0 / 100);
-            angle_y = (float)(atan2(b-532, c-580) / PI * 180.0 / 100);
+            angle_x = (float)(atan2(a-519, c-561) / PI * 180.0 / 100);
+            angle_y = (float)(atan2(b-531, c-570) / PI * 180.0 / 100);
             System.out.println("X=" + angle_x + " Y=" + angle_y );
            }
           count++;
