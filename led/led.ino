@@ -1,19 +1,20 @@
 const char serialStart = 'z';
 const int serialPort = 9600;
 
-const int ledBlue = 0;
-const int ledYerrow = 1;
-const int ledRed = 2;
+const int ledBlue = 2;
+const int ledYerrow = 3;
+const int ledRed = 4;
 
 const int patternBlue = 1;
-const int patternYerrow = 3;
-const int patternRed = 2;
+const int patternYerrow = 2;
+const int patternRed = 3;
 
 const int maxDistance = 100;
 
-const int delayTime = 10;
+const int delayTime = 1;
 
-int distance[3];
+int distances[20];
+int i = 0;
 
 void setLed(int distanceBlue, int distanceYerrow, int distanceRed) {
   if(distanceBlue < 0) distanceBlue = 0;
@@ -23,18 +24,24 @@ void setLed(int distanceBlue, int distanceYerrow, int distanceRed) {
   if(distanceRed < 0) distanceRed = 0;
   if(distanceRed > maxDistance) distanceRed = maxDistance;
 
-  distance[ledBlue] = distanceBlue;
-  distance[ledYerrow] = distanceYerrow;
-  distance[ledRed] = distanceRed;
+  distances[ledBlue] = distanceBlue;
+  distances[ledYerrow] = distanceYerrow;
+  distances[ledRed] = distanceRed;
 }
 
 void serialRead() {
-  while(!((Serial.available() > 3) && Serial.read() == serialStart)) {};
-  setLed(Serial.read(), Serial.read(), Serial.read());
-  Serial.print("----");
-  Serial.print(distance[ledBlue]);
-  Serial.print(distance[ledYerrow]);
-  Serial.print(distance[ledRed]);
+  if((Serial.available() > 3) && (Serial.read() == serialStart)) {
+    setLed(Serial.read(), Serial.read(), Serial.read());
+    Serial.print("!");
+  }
+  Serial.print(distances[ledBlue]);
+  Serial.print("|");
+  Serial.print(distances[ledYerrow]);
+  Serial.print("|");
+  Serial.print(distances[ledRed]);
+  Serial.print("|");
+  Serial.print(i);
+  Serial.print("\n");
 }
 
 bool _lightPattern(int distance, int i, int pattern) {
@@ -52,7 +59,7 @@ bool _lightPattern(int distance, int i, int pattern) {
 }
 
 void lightLed(int led, int i, int pattern) {
-  if(_lightPattern(distance[led], i, pattern)) {
+  if(_lightPattern(distances[led], i, pattern)) {
     digitalWrite(led, HIGH);
   } else {
     digitalWrite(led, LOW);
@@ -66,17 +73,16 @@ void setup() {
   pinMode(ledYerrow, OUTPUT);
   pinMode(ledRed, OUTPUT);
   
-  distance[ledBlue] = maxDistance;
-  distance[ledYerrow] = maxDistance;
-  distance[ledRed] = maxDistance;
+  distances[ledBlue] = maxDistance;
+  distances[ledYerrow] = maxDistance;
+  distances[ledRed] = maxDistance;
 }
 
 void loop() {
   serialRead();
   
-  static int i = 0;
   i++;
-  if(i > maxDistance) i = maxDistance;
+  if(i > maxDistance) i = 0;
 
   lightLed(ledBlue, i, patternBlue);
   lightLed(ledYerrow, i, patternYerrow);
