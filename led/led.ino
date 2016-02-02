@@ -67,7 +67,7 @@ void setup() {
 }
 
 void loop() {
-  serialRead;
+  serialRead();
   
   static int i = 0;
   i++;
