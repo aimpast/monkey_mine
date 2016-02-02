@@ -29,9 +29,7 @@ BObject b1;
 
 BSphere sphere;
 
-BObject test;
-GhostObject ghostObject;
-GhostPairCallback ghostPairCallback;
+//GhostPairCallback ghostPairCallback;
 
 ArrayList<Mine> mines;
 
@@ -45,18 +43,18 @@ int[][] map = {
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,2,0,1},
+  
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,2, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,2,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
@@ -99,7 +97,7 @@ public void setup() {
   
   Vector3f pos3 = new Vector3f(0,0,0);
   sphere = new BSphere(this,1,20,pos3,true);
-  sphere.setPosition(new Vector3f(50,-500,50));
+  sphere.setPosition(new Vector3f(0,-500,0));
   
   physics.addBody(b1);
   physics.addBody(sphere);
@@ -108,31 +106,55 @@ public void setup() {
     for (int i=0;i<20;i++) {
       if (map[j][i] == 0)continue;
       
-      
-      Vector3f pos5 = new Vector3f(50*j-475,-30f,50*i-475);
-      BObject obstracle = new BObject(this,1,box2,pos5,true);
-      physics.addBody(obstracle);
-      
-      Transform frameInA = new Transform();
-      Transform frameInB = new Transform();
-      frameInA.setIdentity();
-      frameInB.setIdentity();
-      
-      frameInA.origin.x = pos5.x;
-      frameInA.origin.z = pos5.z;
-      frameInA.origin.y = -30f;
-      
-      Generic6DofConstraint Fixed;
-      
-      Fixed = new Generic6DofConstraint(b1.rigidBody,obstracle.rigidBody,frameInA,frameInB,true);
+      if (map[j][i] == 1) {
+        Vector3f pos5 = new Vector3f(50*j-475,-30f,50*i-475);
+        BObject obstracle = new BObject(this,1,box2,pos5,true);
+        physics.addBody(obstracle);
         
+        Transform frameInA = new Transform();
+        Transform frameInB = new Transform();
+        frameInA.setIdentity();
+        frameInB.setIdentity();
         
-      Vector3f limit = new Vector3f(0f,0f,0f);
-      Fixed.setAngularLowerLimit(limit);
-      Fixed.setAngularUpperLimit(limit);
-      Fixed.setLinearLowerLimit(new Vector3f(0f,0f,0f));
-      Fixed.setLinearUpperLimit(new Vector3f(0f,0f,0f));
-      physics.addJoint(Fixed);
+        frameInA.origin.x = pos5.x;
+        frameInA.origin.z = pos5.z;
+        frameInA.origin.y = -30f;
+        
+        Generic6DofConstraint Fixed;
+        
+        Fixed = new Generic6DofConstraint(b1.rigidBody,obstracle.rigidBody,frameInA,frameInB,true);
+          
+          
+        Vector3f limit = new Vector3f(0f,0f,0f);
+        Fixed.setAngularLowerLimit(limit);
+        Fixed.setAngularUpperLimit(limit);
+        Fixed.setLinearLowerLimit(new Vector3f(0f,0f,0f));
+        Fixed.setLinearUpperLimit(new Vector3f(0f,0f,0f));
+        physics.addJoint(Fixed);
+      }
+      
+      if (map[j][i] == 2) {
+        Vector3f position_test = new Vector3f(30,-10,0);
+        BObject sensor = new BObject(this,1,box2,position_test,true);
+        
+        Transform transform2 = new Transform();
+        sensor.rigidBody.getMotionState().getWorldTransform(transform2);
+        sensor.rigidBody.setCollisionFlags(sensor.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        sensor.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        //physics.addBody(test);
+        
+        //ghostPairCallback = new GhostPairCallback();
+        //physics.world.getPairCache().setInternalGhostPairCallback(ghostPairCallback);
+        
+        GhostObject ghostObject = new GhostObject();
+        ghostObject.setCollisionShape(sensor.collisionShape);
+        ghostObject.setCollisionFlags(new CollisionFlags().NO_CONTACT_RESPONSE);
+        ghostObject.setWorldTransform(sensor.transform);
+        physics.world.addCollisionObject(ghostObject);
+        
+        Mine m = new Mine(50*j-475,50*i-475,sensor,ghostObject);
+        mines.add(m);
+      }
       
     }
     
@@ -140,28 +162,7 @@ public void setup() {
     
   }
   
-  Vector3f position_test = new Vector3f(30,-10,0);
-  test = new BObject(this,1,box2,position_test,true);
   
-  Transform transform2 = new Transform();
-  test.rigidBody.getMotionState().getWorldTransform(transform2);
-  test.rigidBody.setCollisionFlags(test.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
-  test.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
-  //physics.addBody(test);
-  
-  //ghostPairCallback = new GhostPairCallback();
-  //physics.world.getPairCache().setInternalGhostPairCallback(ghostPairCallback);
-  
-  ghostObject = new GhostObject();
-  ghostObject.setCollisionShape(test.collisionShape);
-  ghostObject.setCollisionFlags(new CollisionFlags().NO_CONTACT_RESPONSE);
-  ghostObject.setWorldTransform(test.transform);
-  physics.world.addCollisionObject(ghostObject);
-  
-  Mine m1 = new Mine(400,100,test,ghostObject);
-  Mine m2 = new Mine(-300,200,test,ghostObject);
-  mines.add(m1);
-  mines.add(m2);
 }  
 
 float angle_x = .0f;
@@ -249,7 +250,7 @@ public void updateGhost() {
   
   for (Mine mine: mines) {
     
-    float bius = 20.f;
+    float bius = 15.f;
     
     Vector3f pos_1 = new Vector3f(cos(angle_x),sin(angle_y),0);
     Vector3f pos_2 = new Vector3f(0,-sin(angle_x),cos(angle_y));
@@ -294,12 +295,12 @@ public void updateGhost() {
     mat1.mul(mat2);
   
     Transform t= new Transform(mat1);
-    test.rigidBody.getMotionState().setWorldTransform(t);
-    ghostObject.setWorldTransform(t);
+    mine.obj.rigidBody.getMotionState().setWorldTransform(t);
+    mine.ghost.setWorldTransform(t);
     
     
     if (visiblity) {
-      test.display();
+      mine.obj.display();
     }
     
     Matrix4f meMat = new Matrix4f();
@@ -314,7 +315,7 @@ public void updateGhost() {
     nearest.y = mineMat.m13-meMat.m13;
     nearest.z = mineMat.m23-meMat.m23;
     
-    System.out.println(nearest.lengthSquared());
+    //System.out.println(nearest.lengthSquared());
     
     if (nearest.lengthSquared()< 1500) {
       
