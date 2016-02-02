@@ -32,12 +32,15 @@ BSphere sphere;
 //GhostPairCallback ghostPairCallback;
 
 ArrayList<Mine> mines;
+ArrayList<Map> maps;
+
+int mapIndex;
 
 //true : Mines are visible
 //false: Mines are unvisible
 public static final boolean visiblity = true;
 
-
+/*
 int[][] map = {
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
@@ -63,12 +66,23 @@ int[][] map = {
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1}
 };
+*/
 
 public void setup() {
   
   mines = new ArrayList<Mine>();
+  maps = new ArrayList<Map>();
   size(640,480,P3D);
   frameRate(60);
+  
+  //add Map from MapList.cfg
+  String[] lines = loadStrings("Map/MapList.cfg");
+  for( int i = 0; i < lines.length; i++ ){
+    maps.add( new Map( lines[i] ) );
+  } 
+  
+  mapIndex = 2;
+  
   
   cam = new PeasyCam(this, 0,-200,0, 1000);
   
@@ -104,9 +118,9 @@ public void setup() {
 
   for (int j=0;j<20;j++) {
     for (int i=0;i<20;i++) {
-      if (map[j][i] == 0)continue;
+      if (maps.get(mapIndex).board[j][i] == 0)continue;
       
-      if (map[j][i] == 1) {
+      if (maps.get(mapIndex).board[j][i] == 1) {
         Vector3f pos5 = new Vector3f(50*j-475,-30f,50*i-475);
         BObject obstracle = new BObject(this,1,box2,pos5,true);
         physics.addBody(obstracle);
@@ -133,7 +147,7 @@ public void setup() {
         physics.addJoint(Fixed);
       }
       
-      if (map[j][i] == 2) {
+      if (maps.get(mapIndex).board[j][i] == 2) {
         Vector3f position_test = new Vector3f(30,-10,0);
         BObject sensor = new BObject(this,1,box2,position_test,true);
         
@@ -154,6 +168,8 @@ public void setup() {
         
         Mine m = new Mine(50*j-475,50*i-475,sensor,ghostObject);
         mines.add(m);
+        
+             
       }
       
     }
