@@ -35,6 +35,9 @@ ArrayList<Mine> mines;
 ArrayList<Map> maps;
 
 int mapIndex;
+ArrayList<Mine> obstracles;
+
+
 
 //true : Mines are visible
 //false: Mines are unvisible
@@ -42,14 +45,8 @@ public static final boolean visiblity = true;
 
 /*
 int[][] map = {
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  /*{1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,2,0,1},
-  
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,2, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
@@ -57,14 +54,44 @@ int[][] map = {
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,2,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,1, 0,1,2,1,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,1, 0,1,0,1,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,1, 0,1,0,1,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,1, 0,1,0,1,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,1, 0,1,0,1,0, 0,0,0,0,1},
+  
+  {1,0,0,0,0, 0,0,0,0,1, 0,0,0,1,0, 0,0,0,0,1},
+  {1,0,0,0,0, 0,0,0,0,1, 1,1,1,1,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1}
+  
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,0,0,1, 1,2,0,0,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
+  
+  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,0,0,2, 1,1,0,0,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
+  
+  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
 };
 */
 
@@ -72,6 +99,8 @@ public void setup() {
   
   mines = new ArrayList<Mine>();
   maps = new ArrayList<Map>();
+  obstracles = new ArrayList<Mine>();
+
   size(640,480,P3D);
   frameRate(60);
   
@@ -113,14 +142,18 @@ public void setup() {
   sphere = new BSphere(this,1,20,pos3,true);
   sphere.setPosition(new Vector3f(0,-500,0));
   
-  physics.addBody(b1);
+  //physics.addBody(b1);
   physics.addBody(sphere);
 
-  for (int j=0;j<20;j++) {
-    for (int i=0;i<20;i++) {
+  for (int j=0;j<maps.get(mapIndex).getYLength();j++) {
+    for (int i=0;i<maps.get(mapIndex).getXLength();i++) {
       if (maps.get(mapIndex).board[j][i] == 0)continue;
       
-      if (maps.get(mapIndex).board[j][i] == 1) {
+
+      //if (maps.get(mapIndex).board[j][i] == 1) {
+
+      /*if (map[j][i] == 1) {
+>>>>>>> origin/kinematic_obstracles
         Vector3f pos5 = new Vector3f(50*j-475,-30f,50*i-475);
         BObject obstracle = new BObject(this,1,box2,pos5,true);
         physics.addBody(obstracle);
@@ -145,6 +178,21 @@ public void setup() {
         Fixed.setLinearLowerLimit(new Vector3f(0f,0f,0f));
         Fixed.setLinearUpperLimit(new Vector3f(0f,0f,0f));
         physics.addJoint(Fixed);
+      }*/
+      
+      if (maps.get(mapIndex).board[j][i] == 1) {
+        Vector3f position = new Vector3f();
+        BObject obj = new BObject(this,1,box2,position,true);
+        
+        Transform transform2 = new Transform();
+        obj.rigidBody.getMotionState().getWorldTransform(transform2);
+        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        
+        physics.addBody(obj);
+        
+        Mine m = new Mine(50*j-475,50*i-475,obj,null);
+        obstracles.add(m);
       }
       
       if (maps.get(mapIndex).board[j][i] == 2) {
@@ -191,6 +239,7 @@ public void draw() {
   
   getkey();
   
+  updateObstracle();
   updateGhost();
 
   physics.update();
@@ -260,6 +309,58 @@ public void getkey() {
   
   }
   
+}
+
+public void updateObstracle() {
+  for (Mine obstracle: obstracles) {
+    
+    float bius = 15.f;
+    
+    Vector3f pos_1 = new Vector3f(cos(angle_x),sin(angle_y),0);
+    Vector3f pos_2 = new Vector3f(0,-sin(angle_x),cos(angle_y));
+    
+    
+    Vector3f up1 = new Vector3f(pos_1.y,-pos_1.x,0);
+    Vector3f up2 = new Vector3f(0,-pos_2.z,+pos_2.y);
+    
+    pos_1.x *= obstracle.x;
+    pos_1.y *= obstracle.y;
+    
+    pos_2.y *= obstracle.x;
+    pos_2.z *= obstracle.y;
+    
+    //System.out.println(up1.x+","+up1.y+","+up1.z);
+    //System.out.println(up2.x+","+up2.y+","+up2.z);
+  
+    if(up1.lengthSquared() > 0)
+      up1.normalize();
+    if(up2.lengthSquared() > 0)
+      up2.normalize();
+    
+   //System.out.println(up1.x+","+up1.y+","+up1.z);
+   //System.out.println(up2.x+","+up2.y+","+up2.z);
+  
+    //Vector3f up = new Vector3f(0,0,0);
+    
+    Matrix4f mat1 = new Matrix4f(
+      1,0,0,                      pos_1.x+pos_2.x+bius*(up1.x+up2.x),
+      0,cos(angle_y),sin(angle_y),pos_1.y+pos_2.y+bius*(up1.y+up2.y),
+      0,-sin(angle_y),cos(angle_y),pos_1.z+pos_2.z+bius*(up1.z+up2.z),
+      0,0,0,1
+    );
+    
+    Matrix4f mat2 = new Matrix4f(
+      cos(angle_x),sin(angle_x),0,0,
+      -sin(angle_x),cos(angle_x),0,0,
+      0,0,1,0,
+      0,0,0,1
+    );
+    
+    mat1.mul(mat2);
+  
+    Transform t= new Transform(mat1);
+    obstracle.obj.rigidBody.getMotionState().setWorldTransform(t);
+  }
 }
 
 public void updateGhost() {
@@ -336,10 +437,10 @@ public void updateGhost() {
     if (nearest.lengthSquared()< 1500) {
       
       Matrix4f vec = new Matrix4f(
-        1,0,0,                      0,
-        0,cos(angle_y),sin(angle_y),-1,
-        0,-sin(angle_y),cos(angle_y),0,
-        0,0,0,1
+        1,           0,            0, 0,
+        0,cos(angle_y) ,sin(angle_y),-1,
+        0,-sin(angle_y),cos(angle_y), 0,
+        0,            0,           0, 1
       );
         
       vec.mul(mat2);
