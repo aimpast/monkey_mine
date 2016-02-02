@@ -17,6 +17,8 @@ import peasy.*;
 import bRigid.*;
 import java.util.*;
 
+import processing.serial.*;
+
 PeasyCam cam;
 
 BPhysics physics;
@@ -63,6 +65,18 @@ int[][] map = {
   {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1}
 };
+
+float angle_x = .0f;
+float angle_y = .0f;
+
+Serial serial;
+String data;
+int x[];
+int y[];
+int z[];
+int count = 0;
+
+boolean flag = false;
 
 public void setup() {
   
@@ -162,18 +176,25 @@ public void setup() {
     
   }
   
+  String portName = Serial.list()[2];
+  
+  x = new int[50];
+  y = new int[50];
+  z = new int[50];
+  
+  serial = new Serial(this, portName, 9600);
+  println(portName);
   
 }  
 
-float angle_x = .0f;
-float angle_y = .0f;
 
 public void draw() {
   
   background(0);
   lights();
   
-  getkey();
+  //getkey();
+  getangle();
   
   updateGhost();
 
@@ -181,6 +202,7 @@ public void draw() {
   physics.display();
 }
 
+/*
 public void getkey() {
   if(keyPressed) {
   if (key == CODED) {
@@ -220,6 +242,7 @@ public void getkey() {
     0,0,0,1
   );*/
   
+  /*
   //Rotation Matrix  
   Matrix3f mat1 = new Matrix3f(
     1,0,0,
@@ -245,7 +268,77 @@ public void getkey() {
   }
   
 }
+*/
 
+public void getangle(){
+  int a,b,c;
+  
+  a = b = c = 0;
+  
+  if (serial.available() > 15) {
+    String get = serial.readStringUntil('$');
+    //System.out.println(get);
+    if (get != null) {
+      String ss[] = split(get,",");
+      if(ss.length >= 4){
+        //System.out.println(ss[0] + ":" + ss[1] + ":" + ss[2] );
+        try{
+          x[count] = Integer.parseInt(ss[0]);
+          y[count] = Integer.parseInt(ss[1]);
+          z[count] = Integer.parseInt(ss[2]);
+          if(flag){
+            for(int i=0; i < 50; i++){
+              a += x[i];
+              b+= y[i];
+              c += z[i];
+            }
+            a /= 50;
+            b /= 50;
+            c /= 50;
+            angle_x = (float)(atan2(a-520, c-580) / PI * 180.0 / 100);
+            angle_y = (float)(atan2(b-532, c-580) / PI * 180.0 / 100);
+            System.out.println("X=" + angle_x + " Y=" + angle_y );
+           }
+          count++;
+          if(count >= 50){
+            count = 0;
+            flag = true;
+          }
+        }catch (NumberFormatException nfex){
+          System.out.println("Data Format Error!");
+        }
+      }
+    }
+  }
+  
+  if(angle_x > .5f) angle_x = .45f;
+  if(angle_x < -.5f) angle_x = -.45f;
+  if(angle_y > .5f) angle_y = .45f;
+  if(angle_y < -.5f) angle_y = -.45f;
+  
+  //Rotation Matrix  
+  Matrix3f mat1 = new Matrix3f(
+    1,0,0,
+    0,cos(angle_y),sin(angle_y),
+    0,-sin(angle_y),cos(angle_y)
+  );
+  
+  Matrix3f mat2 = new Matrix3f(
+    cos(angle_x),sin(angle_x),0,
+    -sin(angle_x) ,cos(angle_x),0,
+    0,0,1
+    );
+    
+  mat1.mul(mat2);
+  
+  //Quat4f qout = new Quat4f();
+  
+  Transform t= new Transform(mat1);
+  //Transform t = new Transform(bius);
+  //t.setRotation(t2.getRotation(qout));
+  b1.rigidBody.getMotionState().setWorldTransform(t);
+  
+}
 public void updateGhost() {
   
   for (Mine mine: mines) {
