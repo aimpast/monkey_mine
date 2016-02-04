@@ -17,6 +17,8 @@ import peasy.*;
 import bRigid.*;
 import java.util.*;
 
+import processing.serial.*;
+
 PeasyCam cam;
 
 BPhysics physics;
@@ -39,7 +41,6 @@ ArrayList<Block> obstracles;
 //false: Mines are unvisible
 public static final boolean visiblity = true;
 
-
 int[][] map = {
   {0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0},
   {0,0,0,0,0, 0,0,3,3,3, 3,3,3,0,0, 0,0,0,0,0},
@@ -61,8 +62,8 @@ int[][] map = {
   
   {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
   {0,0,0,0,0, 0,3,3,3,1, 1,3,3,3,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,3,1,1,1, 1,1,1,3,0, 0,0,0,0,0},
   {0,0,0,0,0, 0,3,1,1,1, 10,1,1,3,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,3,1,1,1, 2,1,1,3,0, 0,0,0,0,0},
   {0,0,0,0,0, 0,3,3,3,3, 3,3,3,3,0, 0,0,0,0,0},
   
   /*{1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
@@ -90,6 +91,20 @@ int[][] map = {
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},*/
 };
 
+float angle_x = .0f;
+float angle_y = .0f;
+
+Serial serial;
+String data;
+int x[];
+int y[];
+int z[];
+int count = 0;
+
+boolean serial_able = true;
+
+boolean flag = false;
+
 public void setup() {
   
   mines = new ArrayList<Mine>();
@@ -114,8 +129,8 @@ public void setup() {
   box2 = new BBox(this,  1, 50, 50, 50);
   wall1 = new BBox(this, 1, 50,100, 50);
   
-  BConvexHull slope = new BConvexHull(this,1,"slope.obj",pos4,true,true);
-  slope.scale(30);
+  //BConvexHull slope = new BConvexHull(this,1,"slope.obj",pos4,true,true);
+  //slope.scale(30);
   
   
   
@@ -129,10 +144,11 @@ public void setup() {
   b1.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
   
   Vector3f pos3 = new Vector3f(0,0,0);
-  sphere = new BSphere(this,1,20,pos3,true);
-  sphere.setPosition(new Vector3f(0,-500,0));
+  sphere = new BSphere(this,125,20,pos3,true);
+  //sphere.setPosition(new Vector3f(0,-500,0));
+  //sphere.rigidBody.setFriction(1.0);
   
-  //physics.addBody(b1);
+  physics.addBody(b1);
   physics.addBody(sphere);
 
   for (int j=0;j<20;j++) {
@@ -144,39 +160,12 @@ public void setup() {
         map[j][i]=1;
       }
       
-      /*if (map[j][i] == 1) {
-        Vector3f pos5 = new Vector3f(50*j-475,-30f,50*i-475);
-        BObject obstracle = new BObject(this,1,box2,pos5,true);
-        physics.addBody(obstracle);
-        
-        Transform frameInA = new Transform();
-        Transform frameInB = new Transform();
-        frameInA.setIdentity();
-        frameInB.setIdentity();
-        
-        frameInA.origin.x = pos5.x;
-        frameInA.origin.z = pos5.z;
-        frameInA.origin.y = -30f;
-        
-        Generic6DofConstraint Fixed;
-        
-        Fixed = new Generic6DofConstraint(b1.rigidBody,obstracle.rigidBody,frameInA,frameInB,true);
-          
-          
-        Vector3f limit = new Vector3f(0f,0f,0f);
-        Fixed.setAngularLowerLimit(limit);
-        Fixed.setAngularUpperLimit(limit);
-        Fixed.setLinearLowerLimit(new Vector3f(0f,0f,0f));
-        Fixed.setLinearUpperLimit(new Vector3f(0f,0f,0f));
-        physics.addJoint(Fixed);
-      }*/
-      
       if (map[j][i] == 1) {
         Vector3f position = new Vector3f();
         BObject obj = new BObject(this,1,box2,position,true);
         
-        Transform transform2 = new Transform();
-        obj.rigidBody.getMotionState().getWorldTransform(transform2);
+        //Transform transform2 = new Transform();
+        //obj.rigidBody.getMotionState().getWorldTransform(transform2);
         obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
         obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
         
@@ -253,7 +242,7 @@ public void setup() {
         obstracles.add(m2);
       }
       
-      if (map[j][i] == 4) {
+      /*if (map[j][i] == 4) {
         Vector3f position_test = new Vector3f(30,-10,0);
         BObject sensor = new BObject(this,1,slope,position_test,true);
         
@@ -282,7 +271,7 @@ public void setup() {
         
         Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
         obstracles.add(m2);
-      }
+      }*/
       
       
       
@@ -292,27 +281,42 @@ public void setup() {
     
   }
   
+  String portName = Serial.list()[2];
+  
+  x = new int[50];
+  y = new int[50];
+  z = new int[50];
+  
+  if(portName.startsWith("/dev/cu.usbmodem")){
+    serial = new Serial(this, portName, 9600);
+    println(portName);
+  }else{
+    serial_able = false;
+  }
   
 }  
 
-float angle_x = .0f;
-float angle_y = .0f;
 
 public void draw() {
   
   background(0);
   lights();
   
-  getkey();
+  
+  if(serial_able){
+    getangle();
+  }
+  else{
+    getkey();
+  }
   
   updateObstracle();
   updateGhost();
   
-  Vector3f spos = sphere.getPosition();
-
   physics.update();
   physics.display();
 }
+
 
 public void getkey() {
   if(keyPressed) {
@@ -352,6 +356,7 @@ public void getkey() {
     0,0,1,0,
     0,0,0,1
   );*/
+  
   
   //Rotation Matrix  
   Matrix3f mat1 = new Matrix3f(
@@ -442,6 +447,75 @@ public void updateObstracle() {
   
 }
 
+public void getangle(){
+  int a,b,c;
+  
+  a = b = c = 0;
+  
+  if (serial.available() > 15) {
+    String get = serial.readStringUntil('$');
+    //System.out.println(get);
+    if (get != null) {
+      String ss[] = split(get,",");
+      if(ss.length >= 4){
+        //System.out.println(ss[0] + ":" + ss[1] + ":" + ss[2] );
+        try{
+          x[count] = Integer.parseInt(ss[0]);
+          y[count] = Integer.parseInt(ss[1]);
+          z[count] = Integer.parseInt(ss[2]);
+          if(flag){
+            for(int i=0; i < 50; i++){
+              a += x[i];
+              b+= y[i];
+              c += z[i];
+            }
+            a /= 50;
+            b /= 50;
+            c /= 50;
+            angle_x = (float)(atan2(a-519, c-561) / PI * 180.0 / 100);
+            angle_y = (float)(atan2(b-531, c-570) / PI * 180.0 / 100);
+            System.out.println("X=" + angle_x + " Y=" + angle_y );
+           }
+          count++;
+          if(count >= 50){
+            count = 0;
+            flag = true;
+          }
+        }catch (NumberFormatException nfex){
+          System.out.println("Data Format Error!");
+        }
+      }
+    }
+  }
+  
+  if(angle_x > .5f) angle_x = .45f;
+  if(angle_x < -.5f) angle_x = -.45f;
+  if(angle_y > .5f) angle_y = .45f;
+  if(angle_y < -.5f) angle_y = -.45f;
+  
+  //Rotation Matrix  
+  Matrix3f mat1 = new Matrix3f(
+    1,0,0,
+    0,cos(angle_y),sin(angle_y),
+    0,-sin(angle_y),cos(angle_y)
+  );
+  
+  Matrix3f mat2 = new Matrix3f(
+    cos(angle_x),sin(angle_x),0,
+    -sin(angle_x) ,cos(angle_x),0,
+    0,0,1
+    );
+    
+  mat1.mul(mat2);
+  
+  //Quat4f qout = new Quat4f();
+  
+  Transform t= new Transform(mat1);
+  //Transform t = new Transform(bius);
+  //t.setRotation(t2.getRotation(qout));
+  b1.rigidBody.getMotionState().setWorldTransform(t);
+  
+}
 public void updateGhost() {
   
   for (Mine mine: mines) {
@@ -526,9 +600,9 @@ public void updateGhost() {
       Vector3f vec2 = new Vector3f(vec.m03,vec.m13,vec.m23);
       vec2.normalize();
       
-      vec2.x *= 100000;
-      vec2.y *= 100000;
-      vec2.z *= 100000;
+      vec2.x *= 10000;
+      vec2.y *= 10000;
+      vec2.z *= 10000;
       
       sphere.rigidBody.applyForce(vec2,sphere.getPosition());
     }
