@@ -126,8 +126,8 @@ public void setup() {
   Vector3f pos4 = new Vector3f(0, 0,0);
   
   box1 = new BBox(this,100,1000, 10,1000);
-  box2 = new BBox(this,  1, 50, 50, 50);
-  wall1 = new BBox(this, 1, 50,100, 50);
+  box2 = new BBox(this,  100, 50, 50, 50);
+  wall1 = new BBox(this, 100, 50,100, 50);
   
   //BConvexHull slope = new BConvexHull(this,1,"slope.obj",pos4,true,true);
   //slope.scale(30);
@@ -148,7 +148,7 @@ public void setup() {
   //sphere.setPosition(new Vector3f(0,-500,0));
   //sphere.rigidBody.setFriction(1.0);
   
-  physics.addBody(b1);
+  //physics.addBody(b1);
   physics.addBody(sphere);
 
   for (int j=0;j<20;j++) {
@@ -162,7 +162,7 @@ public void setup() {
       
       if (map[j][i] == 1) {
         Vector3f position = new Vector3f();
-        BObject obj = new BObject(this,1,box2,position,true);
+        BObject obj = new BObject(this,100,box2,position,true);
         
         //Transform transform2 = new Transform();
         //obj.rigidBody.getMotionState().getWorldTransform(transform2);
@@ -171,13 +171,13 @@ public void setup() {
         
         physics.addBody(obj);
         
-        Block m = new Block(50f*j-475f,-30f,50f*i-475f,obj);
-        obstracles.add(m);
+        Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
+        obstracles.add(m2);
       }
       
       if (map[j][i] == 3) {
         Vector3f position = new Vector3f();
-        BObject obj = new BObject(this,1,wall1,position,true);
+        BObject obj = new BObject(this,100,wall1,position,true);
         
         Transform transform2 = new Transform();
         obj.rigidBody.getMotionState().getWorldTransform(transform2);
@@ -229,7 +229,7 @@ public void setup() {
         mines.add(m);
         
         Vector3f position = new Vector3f();
-        BObject obj = new BObject(this,1,box2,position,true);
+        BObject obj = new BObject(this,100,box2,position,true);
         
         Transform transform3 = new Transform();
         obj.rigidBody.getMotionState().getWorldTransform(transform3);
@@ -587,22 +587,22 @@ public void updateGhost() {
     
     //System.out.println(nearest.lengthSquared());
     
-    if (nearest.lengthSquared()< 500) {
+    if (nearest.lengthSquared()< 1500) {
       
       Matrix4f vec = new Matrix4f(
         1,            0,           0, 0,
-        0,cos(angle_y) ,sin(angle_y),-1,
-        0,-sin(angle_y),cos(angle_y), 0,
+        0,cos(angle_y) ,sin(angle_y),-cos(angle_y),
+        0,-sin(angle_y),cos(angle_y), -sin(angle_y),
         0,            0,           0, 1
       );
         
       vec.mul(mat2);
       Vector3f vec2 = new Vector3f(vec.m03,vec.m13,vec.m23);
       vec2.normalize();
-      
-      vec2.x *= 10000;
-      vec2.y *= 10000;
-      vec2.z *= 10000;
+
+      vec2.x *= 10000000;
+      vec2.y *= 10000000;
+      vec2.z *= 10000000;
       
       sphere.rigidBody.applyForce(vec2,sphere.getPosition());
     }
