@@ -5,12 +5,12 @@ class Block {
   public float x;
   public float y;
   public float z;
-  public BObject     block;
+  public BObject     obj;
   
-  Block(float x,float y,BObject block) {
+  Block(float x,float y,float z,BObject block) {
     this.x = x;
     this.y = y;
     this.z = z;
-    this.block = block;
+    this.obj = block;
   }
 }

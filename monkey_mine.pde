@@ -23,6 +23,7 @@ BPhysics physics;
 
 BBox box1;
 BBox box2;
+BBox wall1;
 BJointHinge hinge;
 BJointHinge hinge2;
 BObject b1;
@@ -32,7 +33,7 @@ BSphere sphere;
 //GhostPairCallback ghostPairCallback;
 
 ArrayList<Mine> mines;
-ArrayList<Mine> obstracles;
+ArrayList<Block> obstracles;
 
 //true : Mines are visible
 //false: Mines are unvisible
@@ -40,31 +41,31 @@ public static final boolean visiblity = true;
 
 
 int[][] map = {
+  {0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,3,3,3, 3,3,3,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,3,1,1, 1,1,3,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,3,1,1, 1,1,3,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,3,1,1, 1,1,3,0,0, 0,0,0,0,0},
+ 
+  {0,0,0,0,0, 0,0,3,1,1, 1,1,3,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
+  
+  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,0,0,2, 1,0,0,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
+  
+  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,3,3,3,1, 1,3,3,3,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,3,1,1,1, 1,1,1,3,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,3,1,1,1, 10,1,1,3,0, 0,0,0,0,0},
+  {0,0,0,0,0, 0,3,3,3,3, 3,3,3,3,0, 0,0,0,0,0},
+  
   /*{1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  
-  {1,0,0,0,0, 0,0,0,0,1, 0,1,2,1,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,1, 0,1,0,1,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,1, 0,1,0,1,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,1, 0,1,0,1,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,1, 0,1,0,1,0, 0,0,0,0,1},
-  
-  {1,0,0,0,0, 0,0,0,0,1, 0,0,0,1,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,1, 1,1,1,1,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,1},
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1}*/
-  
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
   {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
   {1,1,1,1,1, 1,1,0,0,1, 1,2,0,0,1, 1,1,1,1,1},
@@ -78,21 +79,21 @@ int[][] map = {
   
   {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
   {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,3,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,3,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,3,1, 1,1,1,1,1, 1,1,1,1,1},
   
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
   {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
+  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},*/
 };
 
 public void setup() {
   
   mines = new ArrayList<Mine>();
-  obstracles = new ArrayList<Mine>();
+  obstracles = new ArrayList<Block>();
   size(640,480,P3D);
   frameRate(60);
   
@@ -111,6 +112,12 @@ public void setup() {
   
   box1 = new BBox(this,100,1000, 10,1000);
   box2 = new BBox(this,  1, 50, 50, 50);
+  wall1 = new BBox(this, 1, 50,100, 50);
+  
+  BConvexHull slope = new BConvexHull(this,1,"slope.obj",pos4,true,true);
+  slope.scale(30);
+  
+  
   
   b1 = new BObject(this,100,box1,pos1,true);
   
@@ -131,6 +138,11 @@ public void setup() {
   for (int j=0;j<20;j++) {
     for (int i=0;i<20;i++) {
       if (map[j][i] == 0)continue;
+      
+      if (map[j][i]==10) {
+        sphere.setPosition(new Vector3f(50f*j-475f,-500,50f*i-475f));
+        map[j][i]=1;
+      }
       
       /*if (map[j][i] == 1) {
         Vector3f pos5 = new Vector3f(50*j-475,-30f,50*i-475);
@@ -170,9 +182,40 @@ public void setup() {
         
         physics.addBody(obj);
         
-        Mine m = new Mine(50*j-475,50*i-475,obj,null);
+        Block m = new Block(50f*j-475f,-30f,50f*i-475f,obj);
         obstracles.add(m);
       }
+      
+      if (map[j][i] == 3) {
+        Vector3f position = new Vector3f();
+        BObject obj = new BObject(this,1,wall1,position,true);
+        
+        Transform transform2 = new Transform();
+        obj.rigidBody.getMotionState().getWorldTransform(transform2);
+        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        
+        physics.addBody(obj);
+        
+        Block m = new Block(50*j-475,-80f,50*i-475,obj);
+        obstracles.add(m);
+      }
+      
+      /*if (map[j][i] == 4) {
+        Vector3f position = new Vector3f();
+        BObject obj = new BObject(this,1,slope,position,true);
+        
+        Transform transform2 = new Transform();
+        obj.rigidBody.getMotionState().getWorldTransform(transform2);
+        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        
+        physics.addBody(obj);
+        
+        Block m = new Block(50*j-475,-80f,50*i-475,obj);
+        obstracles.add(m);
+      }*/
+      
       
       if (map[j][i] == 2) {
         Vector3f position_test = new Vector3f(30,-10,0);
@@ -195,7 +238,53 @@ public void setup() {
         
         Mine m = new Mine(50*j-475,50*i-475,sensor,ghostObject);
         mines.add(m);
+        
+        Vector3f position = new Vector3f();
+        BObject obj = new BObject(this,1,box2,position,true);
+        
+        Transform transform3 = new Transform();
+        obj.rigidBody.getMotionState().getWorldTransform(transform3);
+        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        
+        physics.addBody(obj);
+        
+        Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
+        obstracles.add(m2);
       }
+      
+      if (map[j][i] == 4) {
+        Vector3f position_test = new Vector3f(30,-10,0);
+        BObject sensor = new BObject(this,1,slope,position_test,true);
+        
+        Transform transform2 = new Transform();
+        sensor.rigidBody.getMotionState().getWorldTransform(transform2);
+        sensor.rigidBody.setCollisionFlags(sensor.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        sensor.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        physics.addBody(sensor);
+        
+        //ghostPairCallback = new GhostPairCallback();
+        //physics.world.getPairCache().setInternalGhostPairCallback(ghostPairCallback);
+        
+        
+        Block m = new Block(50*j-475,-110f,50*i-475,sensor);
+        obstracles.add(m);
+        
+        Vector3f position = new Vector3f();
+        BObject obj = new BObject(this,1,box2,position,true);
+        
+        Transform transform3 = new Transform();
+        obj.rigidBody.getMotionState().getWorldTransform(transform3);
+        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        
+        physics.addBody(obj);
+        
+        Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
+        obstracles.add(m2);
+      }
+      
+      
       
     }
     
@@ -218,6 +307,8 @@ public void draw() {
   
   updateObstracle();
   updateGhost();
+  
+  Vector3f spos = sphere.getPosition();
 
   physics.update();
   physics.display();
@@ -289,9 +380,10 @@ public void getkey() {
 }
 
 public void updateObstracle() {
-  for (Mine obstracle: obstracles) {
+  for (Block obstracle: obstracles) {
     
-    float bius = 15.f;
+    //float bius = 15.f;
+    float bius = -obstracle.y * 1.f/4.f;
     
     Vector3f pos_1 = new Vector3f(cos(angle_x),sin(angle_y),0);
     Vector3f pos_2 = new Vector3f(0,-sin(angle_x),cos(angle_y));
@@ -301,10 +393,10 @@ public void updateObstracle() {
     Vector3f up2 = new Vector3f(0,-pos_2.z,+pos_2.y);
     
     pos_1.x *= obstracle.x;
-    pos_1.y *= obstracle.y;
+    pos_1.y *= obstracle.z;
     
     pos_2.y *= obstracle.x;
-    pos_2.z *= obstracle.y;
+    pos_2.z *= obstracle.z;
     
     //System.out.println(up1.x+","+up1.y+","+up1.z);
     //System.out.println(up2.x+","+up2.y+","+up2.z);
@@ -319,9 +411,17 @@ public void updateObstracle() {
   
     //Vector3f up = new Vector3f(0,0,0);
     
+    /*Matrix4f mat0 = new Matrix4f(
+      1,0,0,pos_1.x+pos_2.x+bius*(up1.x+up2.x),
+      0,1,0,pos_1.y+pos_2.y+bius*(up1.y+up2.y),
+      0,0,1,pos_1.z+pos_2.z+bius*(up1.z+up2.z),
+      0,0,0,1
+    );*/
+    
+    
     Matrix4f mat1 = new Matrix4f(
-      1,0,0,                      pos_1.x+pos_2.x+bius*(up1.x+up2.x),
-      0,cos(angle_y),sin(angle_y),pos_1.y+pos_2.y+bius*(up1.y+up2.y),
+      1,0,0                       ,pos_1.x+pos_2.x+bius*(up1.x+up2.x),
+      0,cos(angle_y),sin(angle_y) ,pos_1.y+pos_2.y+bius*(up1.y+up2.y),
       0,-sin(angle_y),cos(angle_y),pos_1.z+pos_2.z+bius*(up1.z+up2.z),
       0,0,0,1
     );
@@ -334,17 +434,19 @@ public void updateObstracle() {
     );
     
     mat1.mul(mat2);
-  
-    Transform t= new Transform(mat1);
+   
+    Transform t=new Transform(mat1);
     obstracle.obj.rigidBody.getMotionState().setWorldTransform(t);
   }
+  
+  
 }
 
 public void updateGhost() {
   
   for (Mine mine: mines) {
     
-    float bius = 15.f;
+    float bius = 30.f;
     
     Vector3f pos_1 = new Vector3f(cos(angle_x),sin(angle_y),0);
     Vector3f pos_2 = new Vector3f(0,-sin(angle_x),cos(angle_y));
@@ -373,8 +475,8 @@ public void updateGhost() {
     //Vector3f up = new Vector3f(0,0,0);
     
     Matrix4f mat1 = new Matrix4f(
-      1,0,0,                      pos_1.x+pos_2.x+bius*(up1.x+up2.x),
-      0,cos(angle_y),sin(angle_y),pos_1.y+pos_2.y+bius*(up1.y+up2.y),
+      1,0,0,                       pos_1.x+pos_2.x+bius*(up1.x+up2.x),
+      0,cos(angle_y),sin(angle_y) ,pos_1.y+pos_2.y+bius*(up1.y+up2.y),
       0,-sin(angle_y),cos(angle_y),pos_1.z+pos_2.z+bius*(up1.z+up2.z),
       0,0,0,1
     );
@@ -411,10 +513,10 @@ public void updateGhost() {
     
     //System.out.println(nearest.lengthSquared());
     
-    if (nearest.lengthSquared()< 1500) {
+    if (nearest.lengthSquared()< 500) {
       
       Matrix4f vec = new Matrix4f(
-        1,           0,            0, 0,
+        1,            0,           0, 0,
         0,cos(angle_y) ,sin(angle_y),-1,
         0,-sin(angle_y),cos(angle_y), 0,
         0,            0,           0, 1
@@ -424,9 +526,9 @@ public void updateGhost() {
       Vector3f vec2 = new Vector3f(vec.m03,vec.m13,vec.m23);
       vec2.normalize();
       
-      vec2.x *= 10000;
-      vec2.y *= 10000;
-      vec2.z *= 10000;
+      vec2.x *= 100000;
+      vec2.y *= 100000;
+      vec2.z *= 100000;
       
       sphere.rigidBody.applyForce(vec2,sphere.getPosition());
     }
