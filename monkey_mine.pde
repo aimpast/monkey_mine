@@ -117,6 +117,7 @@ public void setup() {
   
   Vector3f pos3 = new Vector3f(0,0,0);
   sphere = new BSphere(this,125,20,pos3,true);
+  sphere.rigidBody.setRestitution(0.0f);
   //sphere.setPosition(new Vector3f(0,-500,0));
   //sphere.rigidBody.setFriction(1.0);
   
