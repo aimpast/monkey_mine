@@ -1,4 +1,3 @@
-
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector4f;
@@ -35,61 +34,14 @@ BSphere sphere;
 //GhostPairCallback ghostPairCallback;
 
 ArrayList<Mine> mines;
+ArrayList<Map> maps;
+
+int mapIndex;
 ArrayList<Block> obstracles;
 
 //true : Mines are visible
 //false: Mines are unvisible
 public static final boolean visiblity = true;
-
-int[][] map = {
-  {0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,3,3,3, 3,3,3,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,3,1,1, 1,1,3,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,3,1,1, 1,1,3,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,3,1,1, 1,1,3,0,0, 0,0,0,0,0},
- 
-  {0,0,0,0,0, 0,0,3,1,1, 1,1,3,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
-  
-  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,0,0,2, 1,0,0,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
-  
-  {0,0,0,0,0, 0,0,0,0,1, 1,0,0,0,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,3,3,3,1, 1,3,3,3,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,3,1,1,1, 10,1,1,3,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,3,1,1,1, 2,1,1,3,0, 0,0,0,0,0},
-  {0,0,0,0,0, 0,3,3,3,3, 3,3,3,3,0, 0,0,0,0,0},
-  
-  /*{1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,0,0,1, 1,2,0,0,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
-  
-  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,0,0,2, 1,1,0,0,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
-  
-  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,0,0,1, 1,1,0,0,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,3,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,3,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,3,1, 1,1,1,1,1, 1,1,1,1,1},
-  
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},
-  {1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1},*/
-};
 
 float angle_x = .0f;
 float angle_y = .0f;
@@ -105,12 +57,38 @@ boolean serial_able = true;
 
 boolean flag = false;
 
+class KeyThread extends Thread {
+  public void run() {
+    for(;;) {
+      if(serial_able){
+        getangle();
+      }
+      else{
+        getkey();
+      }
+      try {
+        Thread.sleep(1);
+      } catch (InterruptedException e) {
+      }
+    }
+  }
+}
+
 public void setup() {
-  
   mines = new ArrayList<Mine>();
   obstracles = new ArrayList<Block>();
+  maps = new ArrayList<Map>();
+
   size(640,480,P3D);
   frameRate(60);
+  
+  //add Map from MapList.cfg
+  String[] lines = loadStrings("Map/MapList.cfg");
+  for( int i = 0; i < lines.length; i++ ){
+    maps.add( new Map( lines[i] ) );
+  } 
+  
+  mapIndex = 2;
   
   cam = new PeasyCam(this, 0,-200,0, 1000);
   
@@ -129,13 +107,7 @@ public void setup() {
   box2 = new BBox(this,  100, 50, 50, 50);
   wall1 = new BBox(this, 100, 50,100, 50);
   
-  //BConvexHull slope = new BConvexHull(this,1,"slope.obj",pos4,true,true);
-  //slope.scale(30);
-  
-  
-  
   b1 = new BObject(this,100,box1,pos1,true);
-  
   
   //Kinematic Object Settings
   Transform transform = new Transform();
@@ -148,19 +120,19 @@ public void setup() {
   //sphere.setPosition(new Vector3f(0,-500,0));
   //sphere.rigidBody.setFriction(1.0);
   
-  //physics.addBody(b1);
   physics.addBody(sphere);
 
-  for (int j=0;j<20;j++) {
-    for (int i=0;i<20;i++) {
-      if (map[j][i] == 0)continue;
+  for (int j=0;j<maps.get(mapIndex).getYLength();j++) {
+    for (int i=0;i<maps.get(mapIndex).getXLength();i++) {
+      if (maps.get(mapIndex).board[j][i] == 0)continue;
       
-      if (map[j][i]==10) {
+      //start position
+      if (maps.get(mapIndex).board[j][i] == 10) {
         sphere.setPosition(new Vector3f(50f*j-475f,-500,50f*i-475f));
-        map[j][i]=1;
+        maps.get(mapIndex).board[j][i]=1;
       }
       
-      if (map[j][i] == 1) {
+      if (maps.get(mapIndex).board[j][i] == 1) {
         Vector3f position = new Vector3f();
         BObject obj = new BObject(this,100,box2,position,true);
         
@@ -175,7 +147,7 @@ public void setup() {
         obstracles.add(m2);
       }
       
-      if (map[j][i] == 3) {
+      if (maps.get(mapIndex).board[j][i] == 3) {
         Vector3f position = new Vector3f();
         BObject obj = new BObject(this,100,wall1,position,true);
         
@@ -190,23 +162,7 @@ public void setup() {
         obstracles.add(m);
       }
       
-      /*if (map[j][i] == 4) {
-        Vector3f position = new Vector3f();
-        BObject obj = new BObject(this,1,slope,position,true);
-        
-        Transform transform2 = new Transform();
-        obj.rigidBody.getMotionState().getWorldTransform(transform2);
-        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
-        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
-        
-        physics.addBody(obj);
-        
-        Block m = new Block(50*j-475,-80f,50*i-475,obj);
-        obstracles.add(m);
-      }*/
-      
-      
-      if (map[j][i] == 2) {
+      if (maps.get(mapIndex).board[j][i] == 2) {
         Vector3f position_test = new Vector3f(30,-10,0);
         BObject sensor = new BObject(this,1,box2,position_test,true);
         
@@ -241,44 +197,7 @@ public void setup() {
         Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
         obstracles.add(m2);
       }
-      
-      /*if (map[j][i] == 4) {
-        Vector3f position_test = new Vector3f(30,-10,0);
-        BObject sensor = new BObject(this,1,slope,position_test,true);
-        
-        Transform transform2 = new Transform();
-        sensor.rigidBody.getMotionState().getWorldTransform(transform2);
-        sensor.rigidBody.setCollisionFlags(sensor.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
-        sensor.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
-        physics.addBody(sensor);
-        
-        //ghostPairCallback = new GhostPairCallback();
-        //physics.world.getPairCache().setInternalGhostPairCallback(ghostPairCallback);
-        
-        
-        Block m = new Block(50*j-475,-110f,50*i-475,sensor);
-        obstracles.add(m);
-        
-        Vector3f position = new Vector3f();
-        BObject obj = new BObject(this,1,box2,position,true);
-        
-        Transform transform3 = new Transform();
-        obj.rigidBody.getMotionState().getWorldTransform(transform3);
-        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
-        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
-        
-        physics.addBody(obj);
-        
-        Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
-        obstracles.add(m2);
-      }*/
-      
-      
-      
     }
-    
-    
-    
   }
   
   String portName = Serial.list()[2];
@@ -294,21 +213,23 @@ public void setup() {
     serial_able = false;
   }
   
-}  
-
+  KeyThread keyThread = new KeyThread();
+  keyThread.start();
+}
 
 public void draw() {
   
   background(0);
   lights();
   
-  
+  /*
   if(serial_able){
     getangle();
   }
   else{
     getkey();
   }
+  */
   
   updateObstracle();
   updateGhost();
@@ -316,7 +237,6 @@ public void draw() {
   physics.update();
   physics.display();
 }
-
 
 public void getkey() {
   if(keyPressed) {
@@ -516,6 +436,7 @@ public void getangle(){
   b1.rigidBody.getMotionState().setWorldTransform(t);
   
 }
+
 public void updateGhost() {
   
   for (Mine mine: mines) {
