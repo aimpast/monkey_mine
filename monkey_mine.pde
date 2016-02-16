@@ -46,7 +46,8 @@ public static final boolean visiblity = true;
 float angle_x = .0f;
 float angle_y = .0f;
 
-Serial serial;
+Serial serial_controller;
+Serial serial_sensor;
 String data;
 int x[];
 int y[];
@@ -73,6 +74,19 @@ class KeyThread extends Thread {
     }
   }
 }
+
+class LightThread extends Thread {
+  public void run() {
+    for(;;) {
+      light();
+      try {
+        Thread.sleep(1);
+      } catch (InterruptedException e) {
+      }
+    }
+  }
+}
+
 
 public void setup() {
   mines = new ArrayList<Mine>();
@@ -201,21 +215,32 @@ public void setup() {
     }
   }
   
-  String portName = Serial.list()[2];
+  //String portName_controller = "/dev/cu.usbmodem14631";
+  String portName_sensor = "/dev/cu.usbmodem14611";
   
   x = new int[50];
   y = new int[50];
   z = new int[50];
   
-  if(portName.startsWith("/dev/cu.usbmodem")){
+  /*
+  if(portName.startsWith("/dev/cu.usbmodem14631")){
     serial = new Serial(this, portName, 9600);
     println(portName);
   }else{
     serial_able = false;
   }
+  */
+  
+  //serial_controller = new Serial(this, portName_controller, 9600);
+  serial_able = false;
+  
+  serial_sensor = new Serial(this, portName_sensor, 9600);
   
   KeyThread keyThread = new KeyThread();
   keyThread.start();
+  LightThread lightThread = new LightThread();
+  lightThread.start();
+  
 }
 
 public void draw() {
@@ -373,8 +398,8 @@ public void getangle(){
   
   a = b = c = 0;
   
-  if (serial.available() > 15) {
-    String get = serial.readStringUntil('$');
+  if (serial_controller.available() > 15) {
+    String get = serial_controller.readStringUntil('$');
     //System.out.println(get);
     if (get != null) {
       String ss[] = split(get,",");
@@ -531,3 +556,26 @@ public void updateGhost() {
   }
   
 }
+
+void light() {
+  // send 'z'
+  serial_sensor.write('z');
+  delay(10);
+  // 3byte
+  serial_sensor.write(0x00);
+  delay(10);
+  serial_sensor.write(0x00);
+  delay(10);
+  serial_sensor.write(0x00);
+  delay(10);
+  //byte[] data = new byte[4];
+  //data[0] = 'z';
+  //data[1] = 0x00;
+  //data[2] = 0x00;
+  //data[3] = 0x00;
+  //serial_sensor.write(data);
+  if(serial_sensor.available() > 0) {
+    System.out.print(serial_sensor.readString());
+  }
+}
+
