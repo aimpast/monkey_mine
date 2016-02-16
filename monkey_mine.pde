@@ -88,7 +88,7 @@ public void setup() {
     maps.add( new Map( lines[i] ) );
   } 
   
-  mapIndex = 2;
+  mapIndex = 1;
   
   cam = new PeasyCam(this, 0,-200,0, 1000);
   
@@ -218,6 +218,7 @@ public void setup() {
   keyThread.start();
 }
 
+int gravity = 500;
 public void draw() {
   
   background(0);
@@ -231,12 +232,24 @@ public void draw() {
     getkey();
   }
   */
-  
   updateObstracle();
   updateGhost();
   
   physics.update();
   physics.display();
+
+  if(keyPressed) {
+    if (key == CODED) {
+      if (keyCode == UP) {
+        gravity += 100;
+      }
+      if (keyCode == DOWN) {
+        gravity -= 100;
+      }
+    }
+    println("g" + gravity);
+    physics.world.setGravity(new Vector3f(0, gravity, 0));
+  }
 }
 
 public void getkey() {
@@ -245,19 +258,19 @@ public void getkey() {
     if (keyCode == UP) {
       
       
-      angle_y -= .005f;
+      angle_y -= .0005f;
       //setRotation(b1.rigidBody,new Vector3f(0,0,1), angle_y);
     }
     else if (keyCode == DOWN) {
-      angle_y += .005f;
+      angle_y += .0005f;
       //setRotation(b1.rigidBody,new Vector3f(0,0,1), angle_y);
     }
     else if (keyCode == RIGHT) {
-      angle_x -= .005f;
+      angle_x -= .0005f;
       //setRotation(b1.rigidBody,new Vector3f(1,0,0), angle_x);
     }
     else if (keyCode == LEFT) {
-      angle_x += .005f;
+      angle_x += .0005f;
       //setRotation(b1.rigidBody,new Vector3f(1,0,0), angle_x);
       
       
