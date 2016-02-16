@@ -6,8 +6,8 @@ const int ledYerrow = 3;
 const int ledRed = 4;
 
 const int patternBlue = 1;
-const int patternYerrow = 2;
-const int patternRed = 3;
+const int patternYerrow = 1;
+const int patternRed = 1;
 
 const int maxDistance = 100;
 
