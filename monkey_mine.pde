@@ -704,7 +704,7 @@ void light() {
     
     int format = (nearest_mines[i]-1500)/1500;
     byte[] bytes = buffer.putInt(format).array();
-    System.out.printf("%d\n",bytes[3]);
+    //System.out.printf("%d\n",bytes[3]);
     serial_sensor.write(bytes[3]);
     delay(10);
   }
