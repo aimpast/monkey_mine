@@ -83,7 +83,7 @@ class KeyThread extends Thread {
 class LightThread extends Thread {
   public void run() {
     for(;;) {
-      setlight();
+      light();
       try {
         Thread.sleep(1);
       } catch (InterruptedException e) {
@@ -689,8 +689,13 @@ void map_reload() {
   
 }
 
-void setlight() {
+void light() {
+  serial_sensor.write('z');
+  delay(10);
   for (int i=0;i<3;i++) {
     System.out.printf("%d\n",nearest_mines[i]);
+    byte format = (nerest_mines-1500)/3000;
+    serial_sensor.write(format);
+    delay(10);
   }
 }
