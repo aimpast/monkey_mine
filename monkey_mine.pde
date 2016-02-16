@@ -12,6 +12,7 @@ import com.bulletphysics.linearmath.QuaternionUtil;
 import com.bulletphysics.linearmath.Transform;
 import com.bulletphysics.dynamics.RigidBody; 
 import java.util.Collections;
+import java.nio.ByteBuffer;
 
 import peasy.*;
 import bRigid.*;
@@ -45,11 +46,12 @@ ArrayList<Block> obstracles;
 
 //true : Mines are visible
 //false: Mines are unvisible
-public static final boolean visiblity = true;
+public static final boolean visiblity = false;
 
 float angle_x = .0f;
 float angle_y = .0f;
 
+Serial serial_sensor;
 Serial serial;
 String data;
 int x[];
@@ -108,7 +110,7 @@ public void setup() {
     maps.add( new Map( lines[i] ) );
   } 
   
-  mapIndex = 2;
+  mapIndex = 0;
   
   cam = new PeasyCam(this, 0,-200,0, 1000);
   
@@ -145,18 +147,22 @@ public void setup() {
 
   map_load();
   
-  String portName = Serial.list()[2];
+  String portName = "/dev/cu.usbmodem14631";
   
   x = new int[50];
   y = new int[50];
   z = new int[50];
   
-  if(portName.startsWith("/dev/cu.usbmodem")){
+  /*if(portName.startsWith("/dev/cu.usbmodem")){
     serial = new Serial(this, portName, 9600);
     println(portName);
   }else{
     serial_able = false;
-  }
+  }*/
+  
+  String portName_sensor = "/dev/cu.usbmodem14611";
+  serial = new Serial(this,portName,9600);
+  serial_sensor = new Serial(this, portName_sensor, 9600);
   
   KeyThread keyThread = new KeyThread();
   keyThread.start();
@@ -683,7 +689,7 @@ void map_reload() {
   goals = new ArrayList<Goal>();
   mines = new ArrayList<Mine>();
   
-  mapIndex--;
+  mapIndex++;
   
   map_load();
   
@@ -693,9 +699,13 @@ void light() {
   serial_sensor.write('z');
   delay(10);
   for (int i=0;i<3;i++) {
-    System.out.printf("%d\n",nearest_mines[i]);
-    byte format = (nerest_mines-1500)/3000;
-    serial_sensor.write(format);
+    //System.out.printf("%d\n",nearest_mines[i]);
+    ByteBuffer buffer = ByteBuffer.allocate(4);
+    
+    int format = (nearest_mines[i]-1500)/1500;
+    byte[] bytes = buffer.putInt(format).array();
+    System.out.printf("%d\n",bytes[3]);
+    serial_sensor.write(bytes[3]);
     delay(10);
   }
 }
