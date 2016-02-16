@@ -46,7 +46,7 @@ ArrayList<Block> obstracles;
 
 //true : Mines are visible
 //false: Mines are unvisible
-public static final boolean visiblity = false;
+public static final boolean visiblity = true;
 
 float angle_x = .0f;
 float angle_y = .0f;
@@ -63,7 +63,7 @@ boolean serial_able = true;
 
 boolean flag = false;
 
-int[] nearest_mines = new int[3];
+int[] nearest_mines;
 
 class KeyThread extends Thread {
   public void run() {
@@ -95,28 +95,31 @@ class LightThread extends Thread {
 }
 
 public void setup() {
+
   mines = new ArrayList<Mine>();
   obstracles = new ArrayList<Block>();
   maps = new ArrayList<Map>();
   goals = new ArrayList<Goal>();
   distances_ = new ArrayList<Integer>();
+  nearest_mines = new int[3];
 
-  size(640,480,P3D);
+  size(640,480,P3D); 
   frameRate(60);
   
+
   //add Map from MapList.cfg
   String[] lines = loadStrings("Map/MapList.cfg");
   for( int i = 0; i < lines.length; i++ ){
     maps.add( new Map( lines[i] ) );
   } 
-  
+
   mapIndex = 0;
   
   cam = new PeasyCam(this, 0,-200,0, 1000);
   
   Vector3f min = new Vector3f(-1200, -2500, -1200);
   Vector3f max = new Vector3f(1200, 2500, 1200);
-  
+
   physics = new BPhysics(min, max);
   
   physics.world.setGravity(new Vector3f(0,500, 0));
@@ -146,28 +149,29 @@ public void setup() {
   physics.addBody(sphere);
 
   map_load();
-  
+
   String portName = "/dev/cu.usbmodem14631";
   
   x = new int[50];
   y = new int[50];
   z = new int[50];
   
-  /*if(portName.startsWith("/dev/cu.usbmodem")){
+  if(portName.startsWith("/dev/cu.usbmodem")){
     serial = new Serial(this, portName, 9600);
     println(portName);
   }else{
     serial_able = false;
-  }*/
+  }
   
   String portName_sensor = "/dev/cu.usbmodem14611";
   serial = new Serial(this,portName,9600);
   serial_sensor = new Serial(this, portName_sensor, 9600);
-  
+
   KeyThread keyThread = new KeyThread();
   keyThread.start();
   LightThread lightThread = new LightThread();
   lightThread.start();
+
 }
 
 public void draw() {
@@ -183,11 +187,9 @@ public void draw() {
     getkey();
   }
   */
-  
   updateObstracle();
   updateGhost();
   updateGoal();
-  
   physics.update();
   physics.display();
 }
@@ -482,12 +484,17 @@ public void updateGhost() {
     }
   }
   Collections.sort(distances_);
- 
   int len = distances_.size();
+  System.out.println(len);
+  if(len > 0){
   nearest_mines[0] = distances_.get(0);
+  }
+  if(len > 1){
   nearest_mines[1] = distances_.get(1);
+  }
+  if(len > 2){
   nearest_mines[2] = distances_.get(2);
-  
+  }
 }
 
 public void updateGoal() {
