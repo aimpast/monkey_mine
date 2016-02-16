@@ -31,6 +31,8 @@ BObject b1;
 
 BSphere sphere;
 
+int aaaaaaaaaaaa=0;
+
 //GhostPairCallback ghostPairCallback;
 
 ArrayList<Mine> mines;
@@ -73,11 +75,14 @@ String data;
 int x[];
 int y[];
 int z[];
+int a = 0;
+int b = 0;
+int c = 0;
 int count = 0;
 
 boolean serial_able = true;
 
-boolean flag = false;
+boolean angle_init_flag = false;
 
 public void setup() {
   
@@ -111,9 +116,9 @@ public void setup() {
   b1.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
   
   Vector3f pos3 = new Vector3f(0,0,0);
-  sphere = new BSphere(this,125,20,pos3,true);
+  sphere = new BSphere(this,150,20,pos3,true);
   sphere.setPosition(new Vector3f(0,-500,0));
-  sphere.rigidBody.setFriction(1.0);
+  sphere.rigidBody.setFriction(0.25);
   
   physics.addBody(b1);
   physics.addBody(sphere);
@@ -183,6 +188,10 @@ public void setup() {
   x = new int[50];
   y = new int[50];
   z = new int[50];
+  
+  for(int i=0; i < 50; i++){
+    x[i] = y[i] = z[i] = 0;
+  }
   
   if(portName.startsWith("/dev/cu.usbmodem")){
     serial = new Serial(this, portName, 9600);
@@ -281,25 +290,21 @@ public void getkey() {
 }
 
 public void getangle(){
-  int a,b,c;
-  
-  a = b = c = 0;
-  
+/*  
   if (serial.available() > 15) {
     String get = serial.readStringUntil('$');
     //System.out.println(get);
     if (get != null) {
       String ss[] = split(get,",");
       if(ss.length >= 4){
-        //System.out.println(ss[0] + ":" + ss[1] + ":" + ss[2] );
         try{
           x[count] = Integer.parseInt(ss[0]);
           y[count] = Integer.parseInt(ss[1]);
           z[count] = Integer.parseInt(ss[2]);
-          if(flag){
+          if(angle_init_flag){
             for(int i=0; i < 50; i++){
               a += x[i];
-              b+= y[i];
+              b += y[i];
               c += z[i];
             }
             a /= 50;
@@ -308,17 +313,34 @@ public void getangle(){
             angle_x = (float)(atan2(a-519, c-561) / PI * 180.0 / 100);
             angle_y = (float)(atan2(b-531, c-570) / PI * 180.0 / 100);
             System.out.println("X=" + angle_x + " Y=" + angle_y );
-           }
+            a = b = c = 0;
+          }
           count++;
           if(count >= 50){
             count = 0;
-            flag = true;
+            angle_init_flag = true;
           }
         }catch (NumberFormatException nfex){
           System.out.println("Data Format Error!");
         }
       }
     }
+  }
+*/
+
+  if(angle_init_flag){
+    for(int i=0; i < 50; i++){
+      a += x[i];
+      b += y[i];
+      c += z[i];
+    }
+    a /= 50;
+    b /= 50;
+    c /= 50;
+    angle_x = (float)(atan2(a-519, c-561) / PI * 180.0 / 100);
+    angle_y = (float)(atan2(b-531, c-570) / PI * 180.0 / 100);
+    System.out.println("X=" + angle_x + " Y=" + angle_y );
+    a = b = c = 0;
   }
   
   if(angle_x > .5f) angle_x = .45f;
@@ -440,5 +462,24 @@ public void updateGhost() {
       sphere.rigidBody.applyForce(vec2,sphere.getPosition());
     }
   }
-  
+}
+
+void serialEvent(Serial p){
+  try{
+    if (serial.available() > 15) {
+      String get = serial.readStringUntil('$');
+      String ss[] = split(get,",");
+      x[count] = Integer.parseInt(ss[0]);
+      y[count] = Integer.parseInt(ss[1]);
+      z[count] = Integer.parseInt(ss[2]);
+      System.out.println("X:" + x[count] + " Y:" + y[count] + "Z:" + z[count] );
+    }
+    count++;
+    if(count >= 50){
+      count = 0;
+      angle_init_flag = true;
+    }
+  }catch (NumberFormatException nfex){
+          System.out.println("Data Format Error!");
+  }
 }
