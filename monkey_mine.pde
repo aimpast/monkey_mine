@@ -11,6 +11,7 @@ import com.bulletphysics.collision.dispatch.GhostObject;
 import com.bulletphysics.linearmath.QuaternionUtil; 
 import com.bulletphysics.linearmath.Transform;
 import com.bulletphysics.dynamics.RigidBody; 
+import java.util.Collections;
 
 import peasy.*;
 import bRigid.*;
@@ -35,6 +36,9 @@ BSphere sphere;
 
 ArrayList<Mine> mines;
 ArrayList<Map> maps;
+ArrayList<Goal> goals;
+
+ArrayList<Integer> distances_;
 
 int mapIndex;
 ArrayList<Block> obstracles;
@@ -57,6 +61,8 @@ boolean serial_able = true;
 
 boolean flag = false;
 
+int[] nearest_mines = new int[3];
+
 class KeyThread extends Thread {
   public void run() {
     for(;;) {
@@ -74,10 +80,24 @@ class KeyThread extends Thread {
   }
 }
 
+class LightThread extends Thread {
+  public void run() {
+    for(;;) {
+      setlight();
+      try {
+        Thread.sleep(1);
+      } catch (InterruptedException e) {
+      }
+    }
+  }
+}
+
 public void setup() {
   mines = new ArrayList<Mine>();
   obstracles = new ArrayList<Block>();
   maps = new ArrayList<Map>();
+  goals = new ArrayList<Goal>();
+  distances_ = new ArrayList<Integer>();
 
   size(640,480,P3D);
   frameRate(60);
@@ -123,83 +143,7 @@ public void setup() {
   
   physics.addBody(sphere);
 
-  for (int j=0;j<maps.get(mapIndex).getYLength();j++) {
-    for (int i=0;i<maps.get(mapIndex).getXLength();i++) {
-      if (maps.get(mapIndex).board[j][i] == 0)continue;
-      
-      //start position
-      if (maps.get(mapIndex).board[j][i] == 10) {
-        sphere.setPosition(new Vector3f(50f*j-475f,-500,50f*i-475f));
-        maps.get(mapIndex).board[j][i]=1;
-      }
-      
-      if (maps.get(mapIndex).board[j][i] == 1) {
-        Vector3f position = new Vector3f();
-        BObject obj = new BObject(this,100,box2,position,true);
-        
-        //Transform transform2 = new Transform();
-        //obj.rigidBody.getMotionState().getWorldTransform(transform2);
-        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
-        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
-        
-        physics.addBody(obj);
-        
-        Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
-        obstracles.add(m2);
-      }
-      
-      if (maps.get(mapIndex).board[j][i] == 3) {
-        Vector3f position = new Vector3f();
-        BObject obj = new BObject(this,100,wall1,position,true);
-        
-        Transform transform2 = new Transform();
-        obj.rigidBody.getMotionState().getWorldTransform(transform2);
-        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
-        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
-        
-        physics.addBody(obj);
-        
-        Block m = new Block(50*j-475,-80f,50*i-475,obj);
-        obstracles.add(m);
-      }
-      
-      if (maps.get(mapIndex).board[j][i] == 2) {
-        Vector3f position_test = new Vector3f(30,-10,0);
-        BObject sensor = new BObject(this,1,box2,position_test,true);
-        
-        Transform transform2 = new Transform();
-        sensor.rigidBody.getMotionState().getWorldTransform(transform2);
-        sensor.rigidBody.setCollisionFlags(sensor.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
-        sensor.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
-        //physics.addBody(test);
-        
-        //ghostPairCallback = new GhostPairCallback();
-        //physics.world.getPairCache().setInternalGhostPairCallback(ghostPairCallback);
-        
-        GhostObject ghostObject = new GhostObject();
-        ghostObject.setCollisionShape(sensor.collisionShape);
-        ghostObject.setCollisionFlags(new CollisionFlags().NO_CONTACT_RESPONSE);
-        ghostObject.setWorldTransform(sensor.transform);
-        physics.world.addCollisionObject(ghostObject);
-        
-        Mine m = new Mine(50*j-475,50*i-475,sensor,ghostObject);
-        mines.add(m);
-        
-        Vector3f position = new Vector3f();
-        BObject obj = new BObject(this,100,box2,position,true);
-        
-        Transform transform3 = new Transform();
-        obj.rigidBody.getMotionState().getWorldTransform(transform3);
-        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
-        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
-        
-        physics.addBody(obj);
-        
-        Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
-        obstracles.add(m2);
-      }
-    }
-  }
+  map_load();
   
   String portName = Serial.list()[2];
   
@@ -216,6 +160,8 @@ public void setup() {
   
   KeyThread keyThread = new KeyThread();
   keyThread.start();
+  LightThread lightThread = new LightThread();
+  lightThread.start();
 }
 
 public void draw() {
@@ -234,6 +180,7 @@ public void draw() {
   
   updateObstracle();
   updateGhost();
+  updateGoal();
   
   physics.update();
   physics.display();
@@ -243,24 +190,20 @@ public void getkey() {
   if(keyPressed) {
   if (key == CODED) {
     if (keyCode == UP) {
-      
-      
-      angle_y -= .005f;
+      angle_y -= .0005f;
       //setRotation(b1.rigidBody,new Vector3f(0,0,1), angle_y);
     }
     else if (keyCode == DOWN) {
-      angle_y += .005f;
+      angle_y += .0005f;
       //setRotation(b1.rigidBody,new Vector3f(0,0,1), angle_y);
     }
     else if (keyCode == RIGHT) {
-      angle_x -= .005f;
+      angle_x -= .0005f;
       //setRotation(b1.rigidBody,new Vector3f(1,0,0), angle_x);
     }
     else if (keyCode == LEFT) {
-      angle_x += .005f;
+      angle_x += .0005f;
       //setRotation(b1.rigidBody,new Vector3f(1,0,0), angle_x);
-      
-      
     }
   }
   
@@ -439,7 +382,8 @@ public void getangle(){
 }
 
 public void updateGhost() {
-  
+  distances_.clear();
+  distances_ = new ArrayList<Integer>();
   for (Mine mine: mines) {
     
     float bius = 30.f;
@@ -509,6 +453,8 @@ public void updateGhost() {
     
     //System.out.println(nearest.lengthSquared());
     
+    distances_.add((int)nearest.lengthSquared());
+    
     if (nearest.lengthSquared()< 1500) {
       
       Matrix4f vec = new Matrix4f(
@@ -529,5 +475,222 @@ public void updateGhost() {
       sphere.rigidBody.applyForce(vec2,sphere.getPosition());
     }
   }
+  Collections.sort(distances_);
+ 
+  int len = distances_.size();
+  nearest_mines[0] = distances_.get(0);
+  nearest_mines[1] = distances_.get(1);
+  nearest_mines[2] = distances_.get(2);
   
+}
+
+public void updateGoal() {
+  
+  for (Goal goal: goals) {
+    
+    float bius = 30.f;
+    
+    Vector3f pos_1 = new Vector3f(cos(angle_x),sin(angle_y),0);
+    Vector3f pos_2 = new Vector3f(0,-sin(angle_x),cos(angle_y));
+    
+    
+    Vector3f up1 = new Vector3f(pos_1.y,-pos_1.x,0);
+    Vector3f up2 = new Vector3f(0,-pos_2.z,+pos_2.y);
+    
+    pos_1.x *= goal.x;
+    pos_1.y *= goal.y;
+    
+    pos_2.y *= goal.x;
+    pos_2.z *= goal.y;
+    
+    //System.out.println(up1.x+","+up1.y+","+up1.z);
+    //System.out.println(up2.x+","+up2.y+","+up2.z);
+  
+    if(up1.lengthSquared() > 0)
+      up1.normalize();
+    if(up2.lengthSquared() > 0)
+      up2.normalize();
+    
+   //System.out.println(up1.x+","+up1.y+","+up1.z);
+   //System.out.println(up2.x+","+up2.y+","+up2.z);
+  
+    //Vector3f up = new Vector3f(0,0,0);
+    
+    Matrix4f mat1 = new Matrix4f(
+      1,0,0,                       pos_1.x+pos_2.x+bius*(up1.x+up2.x),
+      0,cos(angle_y),sin(angle_y) ,pos_1.y+pos_2.y+bius*(up1.y+up2.y),
+      0,-sin(angle_y),cos(angle_y),pos_1.z+pos_2.z+bius*(up1.z+up2.z),
+      0,0,0,1
+    );
+    
+    Matrix4f mat2 = new Matrix4f(
+      cos(angle_x),sin(angle_x),0,0,
+      -sin(angle_x),cos(angle_x),0,0,
+      0,0,1,0,
+      0,0,0,1
+    );
+    
+    mat1.mul(mat2);
+  
+    Transform t= new Transform(mat1);
+    goal.obj.rigidBody.getMotionState().setWorldTransform(t);
+    goal.ghost.setWorldTransform(t);
+    
+    goal.obj.display(255,0,0);
+    
+    
+    Matrix4f meMat = new Matrix4f();
+    Matrix4f mineMat = new Matrix4f();
+    Transform meTransform = new Transform();
+    t.getMatrix(meMat);
+    sphere.rigidBody.getWorldTransform(meTransform).getMatrix(mineMat);
+    
+    Vector3f nearest = new Vector3f();
+    
+    nearest.x = mineMat.m03-meMat.m03;
+    nearest.y = mineMat.m13-meMat.m13;
+    nearest.z = mineMat.m23-meMat.m23;
+    
+    //System.out.println(nearest.lengthSquared());
+    
+    if (nearest.lengthSquared()< 1500) {
+      System.out.println("Goal!!");
+      map_reload();
+    }
+  }
+  
+}
+
+void map_load() {
+  for (int j=0;j<maps.get(mapIndex).getYLength();j++) {
+    for (int i=0;i<maps.get(mapIndex).getXLength();i++) {
+      if (maps.get(mapIndex).board[j][i] == 0)continue;
+      
+      //start position
+      if (maps.get(mapIndex).board[j][i] == 10) {
+        sphere.setPosition(new Vector3f(50f*j-475f,-500,50f*i-475f));
+        maps.get(mapIndex).board[j][i]=1;
+      }
+      
+      if (maps.get(mapIndex).board[j][i] == 1) {
+        Vector3f position = new Vector3f();
+        BObject obj = new BObject(this,100,box2,position,true);
+        
+        //Transform transform2 = new Transform();
+        //obj.rigidBody.getMotionState().getWorldTransform(transform2);
+        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        
+        physics.addBody(obj);
+        
+        Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
+        obstracles.add(m2);
+      }
+      
+      if (maps.get(mapIndex).board[j][i] == 3) {
+        Vector3f position = new Vector3f();
+        BObject obj = new BObject(this,100,wall1,position,true);
+        
+        Transform transform2 = new Transform();
+        obj.rigidBody.getMotionState().getWorldTransform(transform2);
+        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        
+        physics.addBody(obj);
+        
+        Block m = new Block(50*j-475,-80f,50*i-475,obj);
+        obstracles.add(m);
+      }
+      
+      if (maps.get(mapIndex).board[j][i] == 2) {
+        Vector3f position_test = new Vector3f(30,-10,0);
+        BObject sensor = new BObject(this,1,box2,position_test,true);
+        
+        Transform transform2 = new Transform();
+        sensor.rigidBody.getMotionState().getWorldTransform(transform2);
+        sensor.rigidBody.setCollisionFlags(sensor.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        sensor.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        //physics.addBody(test);
+        
+        //ghostPairCallback = new GhostPairCallback();
+        //physics.world.getPairCache().setInternalGhostPairCallback(ghostPairCallback);
+        
+        GhostObject ghostObject = new GhostObject();
+        ghostObject.setCollisionShape(sensor.collisionShape);
+        ghostObject.setCollisionFlags(new CollisionFlags().NO_CONTACT_RESPONSE);
+        ghostObject.setWorldTransform(sensor.transform);
+        physics.world.addCollisionObject(ghostObject);
+        
+        Mine m = new Mine(50*j-475,50*i-475,sensor,ghostObject);
+        mines.add(m);
+        
+        Vector3f position = new Vector3f();
+        BObject obj = new BObject(this,100,box2,position,true);
+        
+        Transform transform3 = new Transform();
+        obj.rigidBody.getMotionState().getWorldTransform(transform3);
+        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        
+        physics.addBody(obj);
+        
+        Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
+        obstracles.add(m2);
+      }
+      
+      if (maps.get(mapIndex).board[j][i] == 20) {
+        Vector3f position_test = new Vector3f(30,-10,0);
+        BObject sensor = new BObject(this,1,box2,position_test,true);
+        
+        Transform transform2 = new Transform();
+        sensor.rigidBody.getMotionState().getWorldTransform(transform2);
+        sensor.rigidBody.setCollisionFlags(sensor.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        sensor.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        //physics.addBody(test);
+        
+        //ghostPairCallback = new GhostPairCallback();
+        //physics.world.getPairCache().setInternalGhostPairCallback(ghostPairCallback);
+        
+        GhostObject ghostObject = new GhostObject();
+        ghostObject.setCollisionShape(sensor.collisionShape);
+        ghostObject.setCollisionFlags(new CollisionFlags().NO_CONTACT_RESPONSE);
+        ghostObject.setWorldTransform(sensor.transform);
+        physics.world.addCollisionObject(ghostObject);
+        
+        
+        Goal m = new Goal(50*j-475,50*i-475,sensor,ghostObject);
+        goals.add(m);
+        
+        Vector3f position = new Vector3f();
+        BObject obj = new BObject(this,100,box2,position,true);
+        
+        Transform transform3 = new Transform();
+        obj.rigidBody.getMotionState().getWorldTransform(transform3);
+        obj.rigidBody.setCollisionFlags(obj.rigidBody.getCollisionFlags() | CollisionFlags.KINEMATIC_OBJECT);
+        obj.rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        
+        physics.addBody(obj);
+        
+        Block m2 = new Block(50f*j-475f,-30f,50f*i-475f,obj);
+        obstracles.add(m2);
+      }
+    }
+  }
+}
+
+void map_reload() {
+  mines = new ArrayList<Mine>();
+  goals = new ArrayList<Goal>();
+  mines = new ArrayList<Mine>();
+  
+  mapIndex--;
+  
+  map_load();
+  
+}
+
+void setlight() {
+  for (int i=0;i<3;i++) {
+    System.out.printf("%d\n",nearest_mines[i]);
+  }
 }
